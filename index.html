@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>我的模拟人生·A股版</title>
+<title>我的模拟人生 · A股版</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d1117">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -35,6 +35,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 #screen-select{padding:14px 18px;height:100vh;display:flex;flex-direction:column}
 #screen-select h1{font-size:18px;margin-bottom:2px}
 #screen-select h1 small{color:var(--dim);font-size:12px;font-weight:400;margin-left:8px}
+.sel-slogan{color:var(--dim);font-size:13px;margin:4px 0 0;line-height:1.5}
 .sel-body{display:flex;gap:14px;flex:1;min-height:0;margin-top:10px}
 .sel-left{width:250px;display:flex;flex-direction:column;min-height:0}
 .sel-left .hd{color:var(--dim);padding:4px 0 6px;font-size:12px}
@@ -109,8 +110,9 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
   align-items:center;background:var(--panel);flex-wrap:wrap;row-gap:5px}
 #chart-tools .lb{color:var(--dim);font-size:11px;margin-right:2px}
 #sub-bar{display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap}
-.sub-btn{padding:2px 8px;font-size:11px;border-radius:5px;line-height:1.5}
+.sub-btn{padding:2px 8px;font-size:11px;border-radius:5px;line-height:1.5;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
 #sub-add{font-size:11px;padding:2px 4px;max-width:120px}
+#chart-tools .ct-tipm{display:none}   /* r21：手机端指标设置栏右侧提示，桌面由 .ct-hint 展示 */
 #chart-wrap{flex:1;display:flex;gap:6px;padding:6px 10px;min-height:0;align-items:center}
 #main-chart,#chip-chart{border-radius:6px;background:var(--panel)}
 #mini-wrap{height:146px;padding:0 10px 6px;display:flex;flex-direction:column}
@@ -156,6 +158,30 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 
 /* ---------- 结算 ---------- */
 #screen-settle{display:none;height:100vh;overflow:auto;padding:24px}
+/* 复盘条（结算后只读回看） */
+#review-bar{display:none;position:sticky;top:0;z-index:60;background:linear-gradient(90deg,#1f6feb33,#8957e533);
+  border-bottom:1px solid var(--line);padding:7px 12px;font-size:12px;color:var(--text);
+  align-items:center;gap:10px;flex-wrap:wrap}
+#review-bar.on{display:flex}
+#review-bar .lb{font-weight:700}
+#review-bar button{padding:3px 12px;font-size:12px}
+/* 结算动作行：复盘本局 / 历史战绩 / 再来一局 */
+.st-actions{display:flex;flex-wrap:wrap;gap:10px;max-width:760px;margin:14px auto 0}
+.st-actions button{flex:1 1 150px;min-height:40px;font-size:14px;padding:8px 12px}
+/* 💝 打赏与建议弹窗 */
+#modal-support .support-msg{font-size:13px;line-height:1.8;color:var(--text);text-align:left}
+#modal-support .support-mail{margin:12px 0 4px;font-size:14px;font-weight:700;color:var(--text)}
+#modal-support .support-mail a{color:#3b82f6;text-decoration:none}
+#modal-support .support-qr-wrap{margin:10px auto 4px;text-align:center}
+#modal-support .support-qr-wrap img{width:228px;height:auto;max-width:76vw;display:inline-block;border-radius:0;background:transparent;padding:0}
+#modal-support .support-qr-tip{font-size:11px;color:var(--dim);margin-top:6px}
+@media(max-width:880px){#modal-support .support-qr-wrap img{width:204px}}
+/* 复盘模式（结算后只读回看）：隐藏交易/推进/换池按钮，禁点交易面板 */
+#screen-game.review #btn-compare,#screen-game.review #btn-settle,#screen-game.review #btn-next,
+#screen-game.review #btn-f5,#screen-game.review #btn-f20,#screen-game.review #btn-clear,
+#screen-game.review #btn-repool,#screen-game.review #stock-list-foot,
+#screen-game.review #trade-panel,#screen-game.review #btn-chip,
+#screen-game.review #sub-fold,#screen-game.review #sub-add,#screen-game.review #sub-bar{display:none !important}
 #settle-box{max-width:760px;margin:0 auto;background:var(--panel);
   border:1px solid var(--line);border-radius:10px;padding:22px}
 #settle-box h2{font-size:20px;margin-bottom:14px}
@@ -184,7 +210,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .tr-d{width:130px;color:var(--dim);font-size:10px;font-family:ui-monospace,Consolas,monospace}
 .forced{color:var(--warn);font-size:11px}
 .st-reveal{margin-top:14px;padding:12px 14px;background:var(--panel2);border:1px solid var(--line);
-  border-radius:8px;display:flex;align-items:center;gap:12px;font-size:13px}
+  border-radius:8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:13px}
 .st-reveal .note{color:var(--dim);font-size:11px}
 .st-reveal b{font-family:ui-monospace,Consolas,monospace;color:var(--warn)}
 
@@ -201,6 +227,9 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .multi-tools .hint{color:var(--dim);font-size:11px}
 .multi-tools .spacer{flex:1}
 #multi-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;overflow:auto;min-height:0;align-content:start}
+/* 多图模式下保留买卖栏：桌面右下浮动面板会盖到网格右下卡，加底部留白避开；手机面板在流式底部，不需补 */
+#multi-panel.with-trade #multi-grid{padding-bottom:230px}
+@media (max-width:880px){#multi-panel.with-trade #multi-grid{padding-bottom:0}}
 .mc-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
 .mc-head{display:flex;align-items:center;gap:6px;padding:4px 8px;border-bottom:1px solid var(--line);background:var(--panel2)}
 .mc-t{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -214,6 +243,59 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .modal-title{font-size:16px;font-weight:700;margin-bottom:8px}
 .modal-msg{color:var(--dim);font-size:13px;line-height:1.6;margin-bottom:16px}
 .modal-btns{display:flex;justify-content:flex-end;gap:10px}
+/* ---------- ⚙️ 副图指标参数设置弹窗（长按/右键指标打开） ---------- */
+#modal-param .modal-box{max-width:470px;width:calc(100vw - 32px)}
+.param-desc{font-size:12px;color:var(--dim);line-height:1.65;margin:2px 0 10px;padding:8px 10px;background:var(--bg);border:1px solid var(--line);border-radius:6px}
+.param-rows{display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow:auto;padding-right:2px}
+.param-row{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.pr-top{display:flex;align-items:center;gap:8px}
+.pr-top label{font-size:13px;font-weight:600;flex:1;color:var(--text);min-width:0}
+.pr-top input{width:82px;flex:0 0 82px;font-size:15px;padding:5px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--text);text-align:center}
+.pr-hint{font-size:11px;color:var(--dim);margin-top:4px;line-height:1.55}
+.param-none{font-size:12px;color:var(--dim);padding:4px 2px 8px;line-height:1.6}
+.param-foot{font-size:11px;color:var(--dim);margin-top:10px;line-height:1.5}
+#modal-param .modal-btns{flex-wrap:wrap;row-gap:6px}
+@media(max-width:880px){
+  #modal-param .param-rows{max-height:46vh}
+  #modal-param .pr-top label{font-size:12px}
+  #modal-param .pr-top input{width:72px;flex-basis:72px;min-height:34px;font-size:16px}
+  #modal-param .modal-btns button{min-height:40px}
+  #modal-param .modal-btns #param-ok,#modal-param .modal-btns #param-cancel{flex:1;max-width:none}
+}
+/* ---------- 💡 小贴士弹窗 ---------- */
+#modal-tip .modal-box{max-width:440px}
+.tip-kicker{font-size:11px;color:var(--acc);margin-bottom:6px}
+.tip-body{font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;
+  background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;
+  min-height:96px;max-height:44vh;overflow-y:auto}
+.tip-foot{display:flex;align-items:center;gap:8px;margin-top:12px}
+.tip-idx{color:var(--dim);font-size:11px;flex:1}
+.tip-foot button{min-height:32px;padding:4px 10px;font-size:12px}
+/* ---------- 🏆 历史战绩弹窗 ---------- */
+#modal-hist .modal-box{max-width:560px;width:calc(100vw - 32px)}
+.hist-n{font-size:12px;color:var(--dim);font-weight:400}
+.hist-sub{color:var(--dim);font-size:11px;margin:-4px 0 10px}
+#hist-list{display:flex;flex-direction:column;gap:8px;max-height:56vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.hist-empty{color:var(--dim);font-size:13px;padding:24px 10px;text-align:center}
+.hist-item{border:1px solid var(--line);border-radius:8px;background:var(--panel2);overflow:hidden}
+.hist-head{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;flex-wrap:wrap}
+.hist-head:hover{background:var(--panel)}
+.hist-badge{flex:none;width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font:800 13px ui-monospace,Consolas,monospace;color:#fff;background:var(--panel)}
+.hist-t{flex:1;min-width:120px;font-size:13px;line-height:1.4}
+.hist-t b{display:block;font-size:14px}
+.hist-t span{color:var(--dim);font-size:11px}
+.hist-ret{flex:none;text-align:right;font-size:12px;line-height:1.5}
+.hist-ret b{display:block;font-family:ui-monospace,Consolas,monospace;font-size:15px}
+.hist-body{display:none;border-top:1px dashed var(--line);padding:10px 12px;font-size:12px;color:var(--dim);line-height:1.7}
+.hist-item.open .hist-body{display:block}
+.hist-body .kv{display:flex;flex-wrap:wrap;gap:2px 14px;margin-bottom:6px}
+.hist-body .trs{max-height:180px;overflow-y:auto;border-top:1px solid var(--line);padding-top:6px;margin-top:4px}
+.hist-tr{display:flex;gap:6px;padding:2px 0;font-size:11px;align-items:center}
+.hist-tr .h-ic{flex:none;font-size:10px}
+.hist-ops{display:flex;align-items:center;gap:10px;margin-top:12px}
+.hist-ops .spacer{flex:1}
+.hist-ops button{min-height:30px;font-size:12px;padding:4px 12px}
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-thumb{background:#30363d;border-radius:4px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -228,39 +310,155 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 #loading-txt{color:var(--dim);font-size:12px}
 #loading-err{color:#f85149;font-size:12px;margin-top:10px;display:none;line-height:1.6}
 
+/* ---------- 开局模式选择弹窗（A内置精选/B全市场/C自选勾选） ---------- */
+#modal-mode .modal-box{max-width:600px;width:calc(100vw - 32px);padding:20px 22px}
+.mm-sub{color:var(--dim);font-size:12px;line-height:1.6;margin-bottom:14px}
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.mode-card{position:relative;display:flex;flex-direction:column;gap:7px;text-align:left;
+  background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 12px 12px;
+  cursor:pointer;transition:border-color .15s,transform .1s,box-shadow .15s}
+.mode-card:hover{border-color:var(--acc);transform:translateY(-1px);box-shadow:0 6px 20px #0006}
+.mode-card .mc-badge{position:absolute;top:-9px;left:12px;font:700 12px ui-monospace,Consolas,monospace;
+  padding:1px 8px;border-radius:10px;color:#fff}
+.mode-card.a .mc-badge{background:#238636}.mode-card.b .mc-badge{background:#1f6feb}.mode-card.c .mc-badge{background:#8957e5}
+.mode-card.d .mc-badge{background:#f0883e}
+/* D（全ETF+LOF）通栏展示，与前三张并排时会折行占满整行 */
+.mode-card.d{grid-column:1 / -1}
+.mode-card .mc-name{font-size:14px;font-weight:700;margin-top:3px}
+.mode-card .mc-lead{font-size:12px;font-weight:700;color:var(--text);line-height:1.4}
+.mode-card .mc-d{font-size:11px;color:var(--dim);line-height:1.55;flex:1}
+.mode-card .mc-d b{color:var(--text)}
+.mode-card .mc-cnt{margin-top:4px;font-size:11px;color:var(--acc);font-family:ui-monospace,Consolas,monospace}
+.mode-card .mc-tags{margin-top:2px;font-size:10px;color:var(--dim)}
+/* 三卡下方：开局数量模式（简单8 / 复杂18，默认复杂） */
+.mm-mode{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-6px 0 16px;
+  padding-top:12px;border-top:1px dashed var(--line)}
+.mm-mode .lb{color:var(--dim);font-size:12px}
+.mm-chip{padding:5px 14px;font-size:12px;border-radius:16px}
+.mm-chip.on{background:#1f6feb;border-color:#1f6feb;color:#fff}
+.mm-hint{color:var(--dim);font-size:11px;flex-basis:100%;line-height:1.5}
+.mm-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:14px}
+.mm-note{color:var(--dim);font-size:11px;line-height:1.6;flex:1;min-width:200px}
+/* ---------- 模式C：自定义勾选（行业筛选+搜索+多选） ---------- */
+#modal-pick .modal-box{max-width:720px;width:calc(100vw - 24px);max-height:92vh;
+  display:flex;flex-direction:column;padding:14px 16px}
+.pk-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pk-title{font-size:15px;font-weight:700;flex:1;min-width:180px}
+.pk-head button{padding:2px 10px}
+.pk-filters{display:flex;gap:6px;margin:10px 0 8px;flex-wrap:wrap;align-items:center}
+.pk-filters input{flex:1;min-width:130px;padding:4px 8px;font-size:12px}
+.pk-filters select{max-width:150px;padding:4px 6px;font-size:12px}
+#pick-quick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;align-items:center}
+#pick-quick .lb{color:var(--dim);font-size:11px}
+.pick-chip{font-size:11px;padding:2px 9px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);cursor:pointer}
+.pick-chip:hover{border-color:var(--acc);color:var(--acc)}
+.pick-chip.on{background:#1f6feb;border-color:#1f6feb;color:#fff}
+.pick-chip .seln{font-weight:700}
+.pick-chip.sel-chip{border-style:dashed}
+.pick-chip.sel-chip.on{border-style:solid}
+.pick-chip.on .seln{color:#fff}
+#pick-list{flex:1;overflow:auto;border:1px solid var(--line);border-radius:8px;min-height:120px;max-height:52vh;background:var(--bg)}
+.pick-row{display:flex;align-items:center;gap:8px;padding:4px 10px;border-bottom:1px solid #21262d;
+  cursor:pointer;font-size:12px;user-select:none}
+.pick-row:hover{background:var(--panel2)}
+.pick-row.on{background:#1f6feb22}
+.pick-row input{margin:0;pointer-events:none;accent-color:#1f6feb}
+.pick-row .pn{font-weight:600;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick-row .pc{color:var(--dim);font-family:ui-monospace,Consolas,monospace;font-size:11px}
+.pick-row .pi{margin-left:auto;color:var(--dim);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.pick-row .tag{font-size:9px;margin-left:0}
+#pk-more{display:none;width:100%;padding:7px;font-size:12px;margin-top:6px}
+.pk-foot{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+#pick-count{font-size:12px;color:var(--dim)}
+#pick-count b{color:var(--acc);font-family:ui-monospace,Consolas,monospace}
+.pk-foot .spacer{flex:1}
+.pk-foot .primary:disabled{opacity:.45;cursor:not-allowed}
+.pk-empty{color:var(--dim);padding:22px 10px;text-align:center;font-size:12px}
+
+/* 顶栏按钮双文案：桌面完整 / 手机短标签（.lbl-short 默认隐藏，手机 media 切换） */
+.lbl-short{display:none}
+/* ---------- 侧栏抽屉按钮（移动端显示） ---------- */
+#btn-side{display:none}
+#sub-fold{display:none}   /* 折叠按钮仅手机版显示 */
+#stock-list-foot{display:none;padding:8px 10px;border-top:1px solid var(--line);background:var(--panel)}
+#stock-list-foot button{width:100%;min-height:34px;font-size:12px}
+/* r25：局内「增删本池股票」（仅 自定义池&进行中 显示；双端通用） */
+#pool-ops-bar{display:none;padding:6px 10px 2px}
+#pool-ops-bar button{width:100%;min-height:32px;font-size:12px;border:1px solid var(--acc);color:var(--acc);border-radius:8px;background:transparent}
+#pool-ops-bar button:hover{background:var(--acc);color:#fff}
+#screen-game.review #pool-ops-bar{display:none!important}
+#side-backdrop{display:none}
+#modal-start{z-index:210}   /* 须盖过模式选择弹窗 */
+#btn-side-close{display:none}
 /* ================= 手机版（竖屏单列） ================= */
 @media (max-width:880px){
   body{overflow:hidden}
-  #screen-select{padding:8px 10px}
+  #screen-select{height:100dvh;overflow-y:auto;padding:8px 10px;-webkit-overflow-scrolling:touch}
   #screen-select h1{font-size:15px;line-height:1.5}
   .sel-body{flex-direction:column;gap:8px}
   .sel-left{width:auto;max-height:38vh}
   .sel-foot{flex-wrap:wrap}
   .pool-bar select{min-width:0}
-  #sel-panels{grid-template-columns:1fr 1fr;grid-template-rows:auto auto;max-height:none}
+  /* 4 图单列（1+1+1+1），整屏可上下滚动 */
+  #sel-panels{grid-template-columns:1fr;grid-template-rows:auto;max-height:none;align-content:start}
 
   /* 游戏：单列竖屏 */
   #screen-game{height:100dvh}
-  #topbar{gap:6px 10px;padding:5px 8px}
+  /* 结算屏：用 100dvh（动态视口高）避免手机地址栏占位导致底部按钮够不着（Bug #33） */
+  #screen-settle{height:100dvh;padding:10px;-webkit-overflow-scrolling:touch}
+  #screen-settle .st-actions button{min-height:44px;font-size:15px}
+  #review-bar{position:sticky;top:0}
+  #review-note{display:none}
+  /* 顶栏两排：第 1 排 HUD 数据块（日期/总资产/可用/收益），第 2 排操作按钮；列间留 6px */
+  #topbar{flex-wrap:wrap;gap:4px 6px;padding:6px 8px}
   #topbar .ver,#btn-clear{display:none}
+  #topbar .spacer{display:none}
+  /* hud 固定 23%×4 占满第一行（不 grow，留给按钮第二行）；按钮基础宽 > 行末余量 → 强制换行 */
+  .hud{flex:0 1 23%;min-width:0}
   .hud .lb{font-size:10px}
-  .hud .vl{font-size:12.5px}
-  .hud .vl.big{font-size:14px}
-  #topbar button{padding:4px 8px;min-height:30px;font-size:11px}
+  .hud .vl{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .hud .vl.big{font-size:13.5px}
+  /* 顶栏按钮通用：flex/padding 交由各按钮专属规则（避免 ID 级专属规则被类型级覆盖） */
+  #topbar button{min-height:34px;font-size:12px}
+  /* 下一天：主操作，绿色醒目 */
+  #btn-next{background:#238636;border-color:#238636;color:#fff;font-weight:700}
+  #btn-next:active{background:#2ea043}
   .game-body{flex-direction:column;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-  .col-left{width:auto;border-right:0;border-bottom:1px solid var(--line);max-height:22dvh}
+  /* ========= 手机模块分块：无边矩形 + 上下黑缝（模块底色区分，黑色间隔自然分隔） ========= */
+  /* 自选池：面板底、无边，与下方主图区之间留 10px 黑缝 */
+  .col-left{width:100%;margin:0 0 10px;border:0;border-radius:0;background:var(--panel);overflow:visible}
+  .col-left .col-hd{background:var(--panel2);padding:5px 10px}
   #stock-list{flex-direction:column}
-  .st-item{padding:5px 8px}
-  .col-mid{width:100%}
-  #chart-tools{padding:4px 6px;gap:4px}
-  #chart-tools .lb,#chart-tools .hint{display:none}
-  #sub-bar{flex-wrap:nowrap;overflow-x:auto;max-width:calc(100vw - 140px)}
-  #sub-add{max-width:92px}
-  #chart-wrap{flex:none;height:48dvh;min-height:240px;padding:4px 6px}
-  #main-chart,#chip-chart{width:100%}
-  #mini-wrap{display:none}
-  #trade-panel{position:static;width:auto;right:auto;bottom:auto;z-index:auto;margin:8px;
-    box-shadow:none;border-radius:10px}
+  .st-item{padding:4px 6px}
+  /* 中列纵向顺序：① K线主图 → ② 副图指标行 → ③ 多图 → ⑤ 交易面板；块间黑缝分隔 */
+  .col-mid{display:flex;flex-direction:column;width:100%}
+  /* K 线主图：全宽无边；高度由 JS 按副图数动态计算 */
+  #chart-wrap{order:1;flex:none;height:auto;padding:0;margin:0 0 8px;border:0;background:transparent}
+  #main-chart,#chip-chart{width:100%;display:block}
+  /* 副图指标条：默认折叠成「标题+收纳钮+提示」一行；展开后多排 chip（点标题/收纳钮/提示均可折叠） */
+  #chart-tools{order:2;display:flex;flex-wrap:wrap;align-items:center;gap:5px 6px;position:relative;
+    padding:6px 8px;margin:0 0 10px;border:0;border-radius:0;background:var(--panel)}
+  #chart-tools .ct-title{display:inline-block;font-size:11px;font-weight:600;color:var(--text);cursor:pointer;white-space:nowrap}
+  #chart-tools .ct-hint{display:none}
+  #chart-tools .ct-tipm{display:inline-block;flex:0 0 auto;margin-left:auto;text-align:right;
+    font-size:10px;color:var(--dim);line-height:1.6;padding:2px 0;cursor:pointer;white-space:nowrap}
+  #sub-fold{position:static;top:auto;right:auto;display:inline-block;padding:2px 8px;font-size:11px;line-height:1.6;border-radius:6px}
+  #chart-tools.fold .ct-title{color:var(--dim)}
+  #chart-tools.fold #sub-bar,#chart-tools.fold #sub-add,
+  #chart-tools.fold #btn-chip{display:none!important}
+  #sub-bar{display:flex;flex-wrap:wrap;gap:5px;max-width:none;overflow:visible}
+  .sub-btn{padding:4px 8px;font-size:11px;line-height:1.5}
+  #sub-add{display:none}
+  /* 多图：替换主图区，1+1+1+1 纵排、页面变长；卡片无边矩形、卡间黑缝 */
+  #multi-panel{order:3;position:static;z-index:auto;background:var(--bg);margin:0;padding:0}
+  #multi-panel .multi-tools{background:var(--panel);padding:6px 10px;margin:0 0 10px;border:0;flex-wrap:wrap;gap:5px}
+  #multi-panel #multi-grid{flex:none;overflow:visible;padding:0 10px;grid-template-columns:1fr;grid-auto-rows:auto;gap:10px}
+  #multi-panel .mc-card{border:0;border-radius:0;background:var(--panel)}
+  .multi-tools .hint{display:none}
+  #mini-wrap{order:4;display:none}
+  /* 交易面板：无边矩形、永远排在最底部，上方黑缝与其它模块分开 */
+  #trade-panel{order:5;position:static;width:auto;right:auto;bottom:auto;z-index:auto;margin:12px 0 0;
+    box-shadow:none;border-radius:0;border:0;background:var(--panel);padding:8px 10px 14px}
   #trade-panel button{min-height:34px;padding:5px 9px;font-size:12px}
   #tb-name{max-width:40vw}
   .col-right{width:auto;border-left:0;border-top:1px solid var(--line)}
@@ -269,7 +467,63 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
   #loading-box{min-width:0;width:calc(100vw - 40px);padding:22px 18px}
   .modal-box{max-width:calc(100vw - 32px)}
   .tp-frac{flex-wrap:wrap}
-  #chart-wrap.trade-on{height:36dvh}
+  /* 手机端：可用/持仓/可卖/盈亏 行较宽，允许换行避免溢出 */
+  #trade-panel .tp-row:nth-child(2){flex-wrap:wrap;row-gap:3px}
+  /* 手机端：隐藏 +5 / +20 / 顶栏「更换股票池」；第二排 4 按钮等宽均分整行 + 6px 自适应间距（列距由 #topbar gap 提供） */
+  #btn-f5,#btn-f20,#btn-repool{display:none}
+  /* 第二排 4 按钮：basis=auto（文字宽，恒大于 HUD 行尾余量 → 强制第二行）→ grow 均分整行；永不溢出换行 */
+  #btn-compare,#btn-settle,#btn-next,#btn-side{flex:1 1 auto;justify-content:center;padding:6px 2px;white-space:nowrap}
+  #topbar .lbl-long{display:none}
+  #topbar .lbl-short{display:inline}
+  #topbar{gap:4px 6px}
+  /* 手机端：顶栏右侧抽屉按钮显示；自选池底部换池按钮显示 */
+  #btn-side{display:inline-flex !important;align-items:center;gap:4px;font-weight:600}
+  /* 手机端：💡 小贴士=固定宽度图标按钮（不参与均分），保证第二排 4 个文字按钮不因加一而换行 */
+  #btn-tip{flex:0 0 36px;padding:6px 0;font-size:16px;line-height:1;justify-content:center}
+  /* 手机端：自选池「更换股票池」按钮 = 网格最后一格（跨满两列），视觉在股票列表内部最下方 */
+  #stock-list-foot{display:flex;grid-column:1 / -1;align-items:center;justify-content:stretch;
+                   border-top:1px solid var(--line);padding:5px 8px;background:transparent}
+  #stock-list-foot button{width:100%}
+  /* 手机端：右侧栏默认隐藏，按钮点开后固定右侧滑出（80vw，主页留 20% 可视） */
+  .col-right{display:none;position:fixed;right:0;top:0;bottom:0;width:min(80vw,380px);z-index:95;
+              background:var(--bg);border-left:1px solid var(--line);
+              box-shadow:-10px 0 28px #000a;animation:none;flex-direction:column}
+  .col-right.open{display:flex;animation:slideR .22s ease-out}
+  @keyframes slideR{from{transform:translateX(100%)}to{transform:translateX(0)}}
+  /* 抽屉灰色遮罩 */
+  #side-backdrop{display:none;position:fixed;inset:0;background:#0007;z-index:94}
+  #side-backdrop.open{display:block}
+  /* 抽屉内关闭 × */
+  #btn-side-close{display:inline-flex !important;align-items:center;justify-content:center;
+                  width:26px;height:26px;border-radius:50%;border:1px solid var(--line);
+                  background:var(--panel2);color:var(--text);font-size:16px;line-height:1;cursor:pointer;padding:0}
+  #btn-side-close:hover{background:var(--up);color:#fff;border-color:var(--up)}
+  /* 自选池：2 列均分，列宽自动吸收（minmax(0,1fr) 防长名撑爆列宽导致横向抽拉），名称超宽省略 */
+  #stock-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;overflow-y:auto;overflow-x:hidden}
+  .st-item{border-right:1px solid var(--line);padding:4px 6px;min-width:0}
+  .st-item:nth-child(2n){border-right:0}
+  .st-item .si-l{min-width:0}
+  .st-item .si-n{gap:3px}
+  .st-item .si-n .nm{max-width:none;min-width:0}
+  .st-item .tag{flex:none}
+  .si-n{font-size:12px}
+  .si-c{font-size:9px}
+  .si-p{font-size:11px}
+  .si-g{font-size:10px}
+  .si-hold{font-size:9px;right:5px;bottom:1px}
+  /* 自选池展开约 7 行（2 列≈14 只），其余内容可向上滚动 */
+  .col-left{max-height:34dvh}
+  #modal-mode .modal-box{padding:16px 14px;max-height:96dvh;overflow-y:auto}
+  .mode-grid{grid-template-columns:1fr;gap:8px}
+  .mode-card{padding:10px 12px}
+  #modal-pick .modal-box{width:calc(100vw - 12px);height:96dvh;padding:10px;overflow:hidden}
+  #pick-quick{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  #pick-quick .lb{display:none}
+  #pick-list{flex:1;min-height:0;max-height:none}
+  .pick-row .pn{max-width:32vw}
+  .pick-row .pi{max-width:26vw}
+  .pk-foot button{min-height:32px}
+  #pk-go{flex:1}
 }
 </style>
 </head>
@@ -277,11 +531,13 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 
 <!-- ============ 选股界面 ============ -->
 <div id="screen-select">
-  <h1>我的模拟人生·A股版 <small>在线版 · 全市场 5400+ 只任抽 · 行情实时获取 · 20万本金 · 365天</small></h1>
+  <h1>我的模拟人生 · A股版 <small class="h1-tip">全市场实时行情 · 模拟选股</small></h1>
+  <div class="sel-slogan">选择你的股票池，开始这一局模拟人生。</div>
   <div class="pool-bar">
     <label for="pool-src">池来源</label>
     <select id="pool-src" title="选择开局抽取标的的来源：全市场随机 / 内置池 / 我的自定义池"></select>
-    <button id="btn-newpool" title="新建一个自定义股票池（粘贴6位代码）">＋ 新建自定义池</button>
+    <button id="btn-newpool" title="新建一个自定义股票池（粘贴6位代码，≥3 只即可）">＋ 新建自定义池</button>
+    <button id="btn-editpool" style="display:none" title="编辑当前自定义池（增删股票）">✎ 编辑此池</button>
     <button id="btn-delpool" style="display:none" title="删除当前选中的我的池">删除此池</button>
   </div>
   <div id="pool-desc"></div>
@@ -303,14 +559,16 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
   <div class="sel-foot">
     <span id="start-info"></span>
     <div class="spacer"></div>
+    <button id="btn-hist" title="查看本机保存的全部历史战绩">🏆 历史战绩</button>
     <span id="ver-badge-sel" class="ver" title="构建版本"></span>
     <button id="btn-resume" style="display:none">继续上次存档 ↺</button>
-    <button class="primary" id="btn-start">开始交易 →</button>
+    <button class="primary" id="btn-start">开始你的交易人生 →</button>
   </div>
 </div>
 
 <!-- ============ 游戏界面 ============ -->
 <div id="screen-game">
+  <div id="review-bar"><span class="lb">🔍 复盘模式 · 只读</span><span id="review-note">本局已结算，仅供查看，不可交易</span><button id="btn-review-back">← 返回结算报告</button></div>
   <div id="topbar">
     <div class="hud"><span class="lb">日期</span><span class="vl" id="hud-date">--</span></div>
     <div class="hud"><span class="lb">总资产</span><span class="vl big" id="hud-eq">--</span></div>
@@ -318,31 +576,44 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
     <div class="hud"><span class="lb">总收益率</span><span class="vl" id="hud-ret">--</span></div>
     <div class="spacer"></div>
     <span id="ver-badge" class="ver" title="构建版本"></span>
-    <button id="btn-repool" title="清仓全部持仓（当日买入按次日开盘价卖出）并重新抽取18只标的，每局限一次">更换股票池(1次)</button>
-    <button id="btn-compare">多图切换</button>
-    <button id="btn-settle">结算本局游戏</button>
+    <button id="btn-repool" title="清仓全部持仓（当日买入按次日开盘价卖出）并重新抽取一批标的，每局限一次">更换股票池(1次)</button>
+    <button id="btn-compare" title="4 张图同屏对比自选池 / 沪深300 等标的走势"><span class="lbl-long">多图切换</span><span class="lbl-short">多图</span></button>
+    <button id="btn-settle"><span class="lbl-long">结算本局游戏</span><span class="lbl-short">结算游戏</span></button>
     <button id="btn-clear" title="清除浏览器中的存档">清除存档</button>
-    <button id="btn-next">下一天 →</button>
+    <button id="btn-next"><span class="lbl-long">下一天 →</span><span class="lbl-short">下一天</span></button>
     <button id="btn-f5">+5天</button>
     <button id="btn-f20">+20天</button>
+    <button id="btn-side" title="打开持仓 / 交易记录 / 新闻抽屉"><span class="lbl-long">≡ 信息</span><span class="lbl-short">信息</span></button>
+    <button id="btn-tip" title="炒股小贴士 💡">💡</button>
   </div>
 
   <div class="game-body">
     <div class="col-left">
-      <div class="col-hd"><span>自选池</span><span>18只</span></div>
+      <div class="col-hd"><span>自选池</span><span id="hd-pool-n">18只</span></div>
+      <div id="pool-ops-bar">
+        <button id="btn-pool-ops" title="在自定义池中增删股票：新增的立即入池可交易，删除的需先清仓该股">✎ 增删本池股票</button>
+      </div>
       <div id="stock-list"></div>
+      <div id="stock-list-foot">
+        <button id="btn-repool-mobile">🔁 更换股票池（剩余 1 次）</button>
+      </div>
     </div>
 
     <div class="col-mid">
       <div id="chart-tools">
-        <span class="lb">副图指标</span>
+        <span class="lb ct-title">指标设置</span>
+        <button id="sub-fold" title="展开 / 收起指标设置">▼</button>
+        <span class="ct-tipm" title="点一下展开/收起指标按钮">点开修改指标设置，长按指标按钮修改参数</span>
         <span id="sub-bar">
-          <button class="sub-btn on" data-k="vol">成交量</button>
+          <button class="sub-btn on" data-k="ma">均线</button>
+          <button class="sub-btn on" data-k="boll">布林带</button>
+          <button class="sub-btn on" data-k="vol">VOL</button>
           <button class="sub-btn on" data-k="macd">MACD</button>
           <button class="sub-btn on" data-k="kdj">KDJ</button>
         </span>
-        <select id="sub-add" title="添加一个副图指标窗口（最多同时显示5个）">
+        <select id="sub-add" title="添加一个指标窗口（最多同时显示5个）">
           <option value="">+ 副图指标</option>
+          <option value="ma-pane">均线 MA（独立分图）</option>
           <option value="vol">成交量 VOL</option>
           <option value="macd">MACD 平滑异同</option>
           <option value="kdj">KDJ 随机指标</option>
@@ -357,10 +628,10 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
           <option value="mtm">MTM 动量线</option>
           <option value="vr">VR 量变率</option>
           <option value="psy">PSY 心理线</option>
+          <option value="crowd">拥挤度 乖离拥挤</option>
         </select>
-        <button id="btn-boll">布林带</button>
         <button id="btn-chip">筹码峰</button>
-        <span class="lb" style="margin-left:4px">滚轮缩放 · 双击复位</span>
+        <span class="lb ct-hint" style="margin-left:4px">滚轮缩放 · 双击复位 · 长按指标按钮修改参数</span>
       </div>
       <div id="chart-wrap">
         <canvas id="main-chart"></canvas>
@@ -395,6 +666,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
           <span class="n">可用 <b id="tb-avail"></b></span>
           <span class="n">持仓 <b id="tb-hold"></b></span>
           <span class="n">可卖 <b id="tb-sellable"></b></span>
+          <span class="n" id="tp-pl" style="display:none">盈亏 <b id="tb-pl"></b></span>
         </div>
         <div class="tp-row">
           <span class="n">数量</span>
@@ -420,9 +692,15 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
     </div>
 
     <div class="col-right">
-      <div class="col-hd"><span>持仓 · 交易记录</span><span id="pos-cnt"></span></div>
+      <div class="col-hd">
+        <span>持仓 · 交易记录</span>
+        <span style="display:flex;gap:8px;align-items:center">
+          <span id="pos-cnt"></span>
+          <button id="btn-side-close" title="关闭抽屉">×</button>
+        </span>
+      </div>
       <div id="pos-list"></div>
-      <div class="col-hd"><span>新闻 · 右上角</span></div>
+      <div class="col-hd"><span>新闻</span></div>
       <div id="news-box"></div>
     </div>
   </div>
@@ -431,14 +709,35 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 <!-- ============ 结算界面 ============ -->
 <div id="screen-settle">
   <div id="settle-box"></div>
-  <div style="text-align:center;margin:16px"><button class="primary" id="btn-again">再来一局</button></div>
+  <div class="st-actions">
+    <button id="btn-review" title="回到本局盘面，逐日查看 K 线与买卖点，不可交易">🔍 复盘本局</button>
+    <button id="btn-hist-from-settle" title="查看本机保存的全部历史战绩">🏆 历史战绩</button>
+    <button id="btn-support" title="打赏支持作者，或发邮件提建议 / 报 Bug">💝 打赏和建议</button>
+    <button class="primary" id="btn-again">再来一局</button>
+  </div>
+</div>
+
+<!-- ============ 💝 打赏与建议弹窗 ============ -->
+<div id="modal-support" class="modal-mask" style="display:none">
+  <div class="modal-box" style="max-width:380px;text-align:center">
+    <div class="modal-title">💝 打赏与建议</div>
+    <div class="modal-msg support-msg">感谢你愿意玩到这里。<br><br>这个 A 股 K 线模拟器，从数据整理、功能设计到开发上线，前前后后投入了不少时间和成本。希望它能成为一个有意思、也真正有用的小工具。<br><br>如果你觉得这个模拟器对你有帮助，或者单纯觉得它做得还不错，欢迎请我喝杯奶茶。你的每一份支持，都会变成我继续维护、更新和开发新功能的动力。<br><br>如果你在使用过程中遇到 Bug，或者有什么想加的功能，也欢迎随时发邮件告诉我。每一条反馈我都会认真看。<br><br>感谢你的使用，也感谢你的支持。</div>
+    <div class="support-mail">建议 / Bug 反馈：<a href="mailto:gzy000@foxmail.com">gzy000@foxmail.com</a></div>
+    <div class="support-qr-wrap">
+      <img id="support-qr" src="support_qr.png" alt="打赏二维码">
+      <div class="support-qr-tip">如果想打赏作者，可长按识别下方二维码</div>
+    </div>
+    <div class="modal-btns">
+      <button id="support-close" class="primary">关闭</button>
+    </div>
+  </div>
 </div>
 
 <!-- ============ 结算确认弹窗 ============ -->
 <div id="modal-settle" class="modal-mask" style="display:none">
   <div class="modal-box">
     <div class="modal-title">结算本局游戏？</div>
-    <div class="modal-msg">将按当前持仓与最新价清算全部资产并进入结算报告，本局无法继续。未平仓持仓会按当前价平仓计入收益。</div>
+    <div class="modal-msg">结算后，本局将正式结束，无法继续交易。系统会按照当前持仓与最新行情价格，自动平仓并计算最终收益，随后生成本局结算报告。<br>未平仓持仓将按当前价格强制平仓。</div>
     <div class="modal-btns">
       <button id="modal-settle-cancel">取消</button>
       <button id="modal-settle-ok" class="primary">确认结算</button>
@@ -450,7 +749,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 <div id="modal-newpool" class="modal-mask" style="display:none">
   <div class="modal-box" style="max-width:420px">
     <div class="modal-title">新建自定义股票池</div>
-    <div class="modal-msg" style="font-size:12px;margin-bottom:8px">粘贴 6 位股票代码，可用逗号 / 空格 / 换行分隔。系统会用全市场清单校验有效性。池内数量 ≥10 只即可开局（超过 18 只将随机抽取 18 只）。</div>
+    <div class="modal-msg" style="font-size:12px;margin-bottom:8px" id="np-rule">粘贴 6 位股票代码，可用逗号 / 空格 / 换行分隔。系统会用全市场清单校验有效性。池内 ≥3 只即可开局，无上限。</div>
     <input id="np-name" type="text" placeholder="池名称，如：我的芯片池" style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:6px 8px">
     <textarea id="np-codes" rows="6" placeholder="例如：600519 000858 300750&#10;002594,688981" style="width:100%;box-sizing:border-box;padding:6px 8px;font:12px ui-monospace,Consolas,monospace"></textarea>
     <div id="np-status"></div>
@@ -473,13 +772,173 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
   </div>
 </div>
 
+<!-- ============ 💡 炒股小贴士弹窗 ============ -->
+<div id="modal-tip" class="modal-mask" style="display:none">
+  <div class="modal-box tip-box">
+    <div class="modal-title">💡 炒股小贴士</div>
+    <div id="tip-kicker" class="tip-kicker"></div>
+    <div id="tip-body" class="tip-body"></div>
+    <div class="tip-foot">
+      <span id="tip-idx" class="tip-idx"></span>
+      <button id="tip-prev" title="上一条">← 上一条</button>
+      <button id="tip-next" class="primary" title="下一条">下一条 →</button>
+      <button id="tip-rand" title="随机一条">🎲</button>
+    </div>
+    <div class="modal-btns" style="margin-top:4px">
+      <button id="tip-close">知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 🏆 历史战绩弹窗 ============ -->
+<div id="modal-hist" class="modal-mask" style="display:none">
+  <div class="modal-box hist-box">
+    <div class="modal-title">🏆 历史战绩 <span class="hist-n" id="hist-n"></span></div>
+    <div class="hist-sub" id="hist-sub"></div>
+    <div id="hist-list"></div>
+    <div class="hist-ops">
+      <button id="hist-clear" title="清空本机全部历史战绩">清空历史</button>
+      <span class="spacer"></span>
+      <button class="primary" id="hist-close">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ⚙️ 副图指标参数设置（长按 / 右键副图指标打开） ============ -->
+<div id="modal-param" class="modal-mask" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title" id="param-title">指标参数</div>
+    <div class="param-desc" id="param-desc"></div>
+    <div id="param-rows" class="param-rows"></div>
+    <div class="param-foot">参数即时生效并保存到本机，下次开局仍沿用；「恢复默认」还原当前指标默认值，「重置全部」一键清空所有指标（含主图均线/布林带/副图/拥挤度）的参数；不满意可「取消」退回原参数。</div>
+    <div class="modal-btns">
+      <button id="param-reset" title="恢复该指标默认参数">恢复默认</button>
+      <button id="param-reset-all" title="重置所有指标参数（含主图均线/布林带/副图/拥挤度）">重置全部</button>
+      <button id="param-sync" style="display:none" title="把副图均线参数同步为主图均线的当前值">与主图一致</button>
+      <span class="spacer"></span>
+      <button id="param-cancel">取消</button>
+      <button id="param-ok" class="primary">确定</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
+<div id="side-backdrop"></div>
+
+<!-- ============ 自定义开局日期弹窗（双击选股页右下角版本号打开） ============ -->
+<div id="modal-start" class="modal-mask" style="display:none">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-title">自定义本局开始日期</div>
+    <div class="modal-msg" style="font-size:12px;margin-bottom:6px">开局将从所选日期开始，穿越约 1 个自然年（242 个交易日）。若所选日期接近数据末端，游戏将在数据耗尽时提前结算。改动后会<b>重新抽取股票池并刷新全部 K 线</b>。</div>
+    <div style="display:flex;align-items:center;gap:6px;margin:10px 0 4px;flex-wrap:wrap">
+      <label style="font-size:12px;color:var(--dim)">起点</label>
+      <select id="start-year" style="padding:5px 8px;font-size:13px;border-radius:6px;background:var(--panel2);color:var(--text);border:1px solid var(--line)"></select>
+      <span style="font-size:12px;color:var(--dim)">年</span>
+      <select id="start-month" style="padding:5px 8px;font-size:13px;border-radius:6px;background:var(--panel2);color:var(--text);border:1px solid var(--line)"></select>
+      <span style="font-size:12px;color:var(--dim)">月</span>
+      <select id="start-day" style="padding:5px 8px;font-size:13px;border-radius:6px;background:var(--panel2);color:var(--text);border:1px solid var(--line)"></select>
+      <span style="font-size:12px;color:var(--dim)">日</span>
+    </div>
+    <div style="display:flex;gap:6px;margin:4px 0">
+      <button id="start-random" class="pick-chip" style="flex:1;padding:5px;font-size:11px">🎲 随机起点</button>
+      <button id="start-latest" class="pick-chip" style="flex:1;padding:5px;font-size:11px">⏩ 尽量晚（挑战极限）</button>
+    </div>
+    <div id="start-hint" style="color:var(--dim);font-size:11px;margin:6px 0 0"></div>
+    <div class="modal-btns" style="margin-top:10px">
+      <button id="start-cancel">取消</button>
+      <button id="start-ok" class="primary">保存并重新开局</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 开局模式选择：A内置精选 / B全市场随机 / C自定义勾选 / D全ETF+LOF ============ -->
+<div id="modal-mode" class="modal-mask" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">🎲 开局先选玩法</div>
+    <div class="mm-sub" id="mm-sub">选择本局要交易的「股票池」。<br>不同股票池，会决定你这局遇到什么样的市场。</div>
+    <div class="mode-grid">
+      <div class="mode-card a" id="mc-a">
+        <span class="mc-badge">A</span>
+        <div class="mc-name">精选股票池</div>
+        <div class="mc-lead">130 只 A 股 + 20 只 ETF</div>
+        <div class="mc-d">延续经典版本的精选池，涵盖白酒、半导体、新能源、医药、银行等主要行业的代表性公司与主流 ETF。避开仙股与 ST，标的质量更稳定，<b>更接近真实的市场交易体验</b>。</div>
+        <div class="mc-cnt" id="mc-a-cnt"></div>
+      </div>
+      <div class="mode-card b" id="mc-b">
+        <span class="mc-badge">B</span>
+        <div class="mc-name">全市场随机</div>
+        <div class="mc-lead">5800+ 标的，全随机抽取</div>
+        <div class="mc-d">直接从全市场随机抽取，妖股、ST、新股都可能出现。同一行业最多抽取 2 只，尽量避免股票过度集中。<br><b>运气与实力并存，意外永远比计划多。</b><br>这是原版最经典的玩法。</div>
+        <div class="mc-cnt" id="mc-b-cnt"></div>
+      </div>
+      <div class="mode-card c" id="mc-c">
+        <span class="mc-badge">C</span>
+        <div class="mc-name">自定义股票池</div>
+        <div class="mc-lead">自己决定这一局玩什么</div>
+        <div class="mc-d">从全市场自由选择标的，支持：<b>类型筛选 · 名称 / 代码搜索 · 行业筛选</b>。组成你的专属股票池，所选标的<b>全部进入本局</b>。</div>
+        <div class="mc-cnt" id="mc-c-cnt"></div>
+      </div>
+      <div class="mode-card d" id="mc-d">
+        <span class="mc-badge">D</span>
+        <div class="mc-name">ETF + LOF</div>
+        <div class="mc-lead">只玩场内基金，不碰个股雷</div>
+        <div class="mc-d">只选择场内 ETF 与 LOF，覆盖宽基、行业、主题、跨境等多个方向。抽取时会尽量进行板块分散，减少单一方向过度集中。<b>不赌个股，专注板块轮动与指数择时。</b></div>
+        <div class="mc-cnt" id="mc-d-cnt"></div>
+      </div>
+    </div>
+    <div class="mm-mode">
+      <span class="lb">本局标的数量</span>
+      <button id="mode-simple" class="mm-chip" title="每局只面对 8 只标的，决策面小、上手快">简单模式 · 8 只</button>
+      <button id="mode-complex" class="mm-chip on" title="每局 18 只标的，覆盖更多板块与风格（默认）">复杂模式 · 18 只 ✓</button>
+      <span class="mm-hint" id="mm-mode-hint"></span>
+    </div>
+    <div class="mm-row">
+      <span class="mm-note">小提示：开局后，还可以通过顶栏的「更换股票池」重新抽取。C 模式除外：只要自选数量不超过本局上限，所选标的都会全部保留。</span>
+      <button id="btn-mode-resume" style="display:none">继续上次存档 ↺</button>
+      <button class="primary" id="btn-mode-close">先不开局</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 模式C：自定义勾选股票 ============ -->
+<div id="modal-pick" class="modal-mask" style="display:none">
+  <div class="modal-box">
+    <div class="pk-head">
+      <button id="pk-back">← 返回</button>
+      <span class="pk-title" id="pk-title">勾选你的股票池（10–20 只；选满后需先取消才能再勾）</span>
+    </div>
+    <div id="pick-quick">
+      <span class="lb">快捷筛选：</span>
+      <span class="pick-chip on" data-cat="all">全部</span>
+      <span class="pick-chip" data-cat="white">白马</span>
+      <span class="pick-chip" data-cat="blue">蓝筹</span>
+      <span class="pick-chip" data-cat="monster">妖股</span>
+      <span class="pick-chip" data-cat="st">ST</span>
+      <span class="pick-chip" data-cat="cycle">周期</span>
+      <span class="pick-chip" data-cat="etf">ETF</span>
+      <span class="pick-chip sel-chip" data-cat="sel">已选 <b class="seln">0</b></span>
+    </div>
+    <div class="pk-filters">
+      <input id="pk-q" type="text" placeholder="搜 名称 / 代码（如：茅台 或 600519）">
+      <select id="pk-ind"><option value="">全部行业</option></select>
+      <button id="pk-clear" title="清空当前已勾选">清空</button>
+    </div>
+    <div id="pick-list"></div>
+    <button id="pk-more">显示更多…</button>
+    <div class="pk-foot">
+      <span id="pick-count">已选 <b>0</b> 只（还需 10 只）</span>
+      <div class="spacer"></div>
+      <button class="primary" id="pk-go" disabled>用这 N 只开局 →</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- ============ 在线版加载遮罩 ============ -->
 <div id="loading-mask" class="hide">
   <div id="loading-box">
     <div id="loading-title">正在获取行情数据…</div>
-    <div id="loading-sub">本版为<b>在线版 v3</b>：全市场/内置池/自定义池 · 静态库CDN/东财/腾讯/新浪多源级联+本地缓存 · 手机竖屏自动单列（50根K）。</div>
+    <div id="loading-sub">开局玩法：A 精选股票池 / B 全市场随机 / C 自定义股票池 / D ETF+LOF · 多源实时行情级联 + 本地缓存 · 手机竖屏自动单列。</div>
     <div id="loading-bar"><div id="loading-fill"></div></div>
     <div id="loading-txt">准备中…</div>
     <div id="loading-err"></div>
@@ -491,6 +950,8 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 <script src="data_news.js"></script>
 <script src="data_universe.js"></script>
 <script src="data_pools.js"></script>
+<script src="data_kline.js"></script>
+<script src="data_etf.js"></script>
 <script src="chart.js"></script>
 <script src="online.js"></script>
 <script src="app.js"></script>

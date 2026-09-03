@@ -222,7 +222,11 @@
     pdi: '#f0b90b', mdi: '#3b82f6', adx: '#a855f7', adxr: '#ec4899',
     atr: '#f0b90b', roc: '#f0b90b', rocma: '#3b82f6',
     mtm: '#f0b90b', mtmma: '#3b82f6', vr: '#f0b90b', vrma: '#a855f7',
-    psy: '#f0b90b', psyma: '#3b82f6'
+    psy: '#f0b90b', psyma: '#3b82f6',
+    crowd: '#22d3ee',                  // 拥挤度（副图）线色
+    volUp: '#f29683', volDn: '#58b9d4', // 信息框量涨跌幅：浅红 / 蓝青（比价格涨跌红绿饱和度低，明显区分）
+    pxTag: '#ffcf3d',                  // 主图价格轴「当前价」标签：黄色
+    mkBuy: '#f85149', mkSell: '#3fb6ff'   // 玩家买卖点：B 买(红) / S 卖(蓝)
   };
 
   function fmt(n, dec) {
@@ -263,6 +267,16 @@
       self.draw();
     });
     this.cv.addEventListener('mouseleave', function () { self.cross = null; self.draw(); });
+    // 触屏：单击钉住十字光标信息框 2.6s（手指放开后仍有小框可看日期/涨跌幅/开高低收），再次点击可刷新位置
+    var tapClear = null;
+    this.cv.addEventListener('click', function (e) {
+      if (!('ontouchstart' in window)) return;   // 纯鼠标设备走 hover，不钉住
+      var r = self.cv.getBoundingClientRect();
+      self.cross = { x: e.clientX - r.left, y: e.clientY - r.top };
+      self.draw();
+      if (tapClear) clearTimeout(tapClear);
+      tapClear = setTimeout(function () { self.cross = null; self.draw(); }, 2600);
+    });
     this.cv.addEventListener('wheel', function (e) {
       e.preventDefault();
       self.viewBars = Math.max(10, Math.min(500, Math.round(self.viewBars * (e.deltaY > 0 ? 1.12 : 0.89))));
@@ -307,6 +321,11 @@
     this.cv.style.width = w + 'px'; this.cv.style.height = h + 'px';
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.cssW = w; this.cssH = h;
+    // 右侧价格标签预留随画布宽度自适应，避免手机/多图窄卡右侧大片空白
+    if (w <= 340) { this.padL = 6; this.padR = 34; this.padB = 16; }
+    else if (w <= 520) { this.padL = 8; this.padR = 46; this.padB = 18; }
+    else { this.padL = 8; this.padR = 62; this.padB = 20; }
+    this.compact = w <= 520;   // 窄画布：每个副图窗口固定高度，不随副图数量互相挤压
     this.draw();
   };
 
@@ -318,10 +337,20 @@
 
     var nSub = this.opts.subs.length;
     var totalH = H - this.padT - this.padB;
-    // 主图高度随副图数量收缩：副图越多主图让出越多空间，但主图始终 ≥50%
-    var mainR = nSub === 0 ? 1 : nSub <= 2 ? 0.66 : nSub <= 4 ? 0.58 : 0.5;
-    var mainH = Math.round(totalH * mainR);
-    var subH = nSub ? Math.max(24, Math.round((totalH - mainH - 4 * (nSub - 1)) / nSub)) : 0;
+    // 主图与副图高度分配：
+    // - 窄画布（手机/小卡）：每个副图窗口固定 ≈52px，主图高度独立不随副图数量被压缩
+    //   （画布总高已由调用方按“半屏主图 + n×副图”给出）
+    // - 宽画布（桌面）：按比例收缩（副图越多主图让出越多，但主图始终 ≥50%）
+    var mainH, subH;
+    if (this.compact) {
+      subH = 52;
+      var subTotal = nSub ? (nSub * (subH + 4) - 4) : 0;
+      mainH = Math.max(120, totalH - subTotal);
+    } else {
+      var mainR = nSub === 0 ? 1 : nSub <= 2 ? 0.66 : nSub <= 4 ? 0.58 : 0.5;
+      mainH = Math.round(totalH * mainR);
+      subH = nSub ? Math.max(24, Math.round((totalH - mainH - 4 * (nSub - 1)) / nSub)) : 0;
+    }
     var pw = this._plotW();
 
     var start = Math.max(0, this.endIdx - this.viewBars + 1);
@@ -335,12 +364,19 @@
       if (d.h[i] > hi) hi = d.h[i];
       if (d.l[i] < lo) lo = d.l[i];
     }
-    var ma5 = sma(d.c, 5), ma10 = sma(d.c, 10), ma20 = sma(d.c, 20), ma60 = sma(d.c, 60);
-    var bl = this.opts.showBoll ? boll(d.c, 20, 2) : null;
-    [ma5, ma10, ma20, ma60].forEach(function (m) {
-      if (!this.opts.showMa) return;
+    var maP = subParams('ma');                 // 主图均线周期（可长按「均线」改，持久化）
+    if (!maP.length) maP = [5, 10, 20, 60];
+    if (maP.length < 4) maP = maP.concat([5, 10, 20, 60]).slice(0, 4);
+    var maPs = maP.slice(0, 4);
+    var maC = [T.ma5, T.ma10, T.ma20, T.ma60];
+    var maArr = maPs.map(function (n) { return sma(d.c, n); });
+    var bollP = subParams('boll');            // 布林带参数（可长按「布林带」改，持久化）
+    var blN = (bollP[0] && bollP[0] >= 2) ? bollP[0] : 20;
+    var blK = (bollP[1] && bollP[1] >= 1) ? bollP[1] : 2;
+    var bl = this.opts.showBoll ? boll(d.c, blN, blK) : null;
+    if (this.opts.showMa) maArr.forEach(function (m) {
       for (var i = start; i <= end; i++) if (m[i] != null) { if (m[i] > hi) hi = m[i]; if (m[i] < lo) lo = m[i]; }
-    }, this);
+    });
     if (bl) for (var i = start; i <= end; i++) {
       if (bl.up[i] != null) { if (bl.up[i] > hi) hi = bl.up[i]; if (bl.dn[i] < lo) lo = bl.dn[i]; }
     }
@@ -375,6 +411,33 @@
       ctx.fillRect(cx - cw / 2, top, cw, hgt);
     }
 
+    // 玩家买卖点标注：B（买入，红）画在当日最低价下方；S（卖出，蓝）画在最高价上方（r18）
+    var mk = this.opts.markers;
+    if (mk && ((mk.B && mk.B.length) || (mk.S && mk.S.length))) {
+      var iB = mk.B || [], iS = mk.S || [];
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineWidth = 1;
+      for (var mi = start; mi <= end; mi++) {
+        var hasB = iB.indexOf(mi) >= 0, hasS = iS.indexOf(mi) >= 0;
+        if (!hasB && !hasS) continue;
+        var mcx = px(mi);
+        if (hasB) {
+          var yB = Math.min(py(d.l[mi]) + 10, mainBot - 8);
+          ctx.beginPath(); ctx.arc(mcx, yB, 7, 0, Math.PI * 2);
+          ctx.fillStyle = T.mkBuy; ctx.fill();
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 9px ui-monospace, Consolas, monospace';
+          ctx.fillText('B', mcx, yB);
+        }
+        if (hasS) {
+          var yS = Math.max(py(d.h[mi]) - 10, mainTop + 8);
+          ctx.beginPath(); ctx.arc(mcx, yS, 7, 0, Math.PI * 2);
+          ctx.fillStyle = T.mkSell; ctx.fill();
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 9px ui-monospace, Consolas, monospace';
+          ctx.fillText('S', mcx, yS);
+        }
+      }
+    }
+
     // MA / BOLL
     var line = function (arr, color, dash) {
       ctx.strokeStyle = color; ctx.lineWidth = 1.2;
@@ -387,8 +450,44 @@
       }
       ctx.stroke(); ctx.setLineDash([]);
     };
-    if (this.opts.showMa) { line(ma5, T.ma5); line(ma10, T.ma10); line(ma20, T.ma20); line(ma60, T.ma60); }
+    if (this.opts.showMa) maArr.forEach(function (arr, q) { line(arr, maC[q]); });
     if (bl) { line(bl.up, T.boll, [3, 3]); line(bl.mid, T.boll, [3, 3]); line(bl.dn, T.boll, [3, 3]); }
+
+    // 主图左下方：均线数值栏（M5/M10/M20/M60 两行），数值随十字光标位置变化；无光标=当前日
+    if (this.opts.showMa && this.opts.maPad !== false) {
+      var hIdx = this.endIdx;
+      if (this.cross && this.cross.x >= x0 && this.cross.x <= x0 + pw) {
+        hIdx = Math.round(start + (this.cross.x - x0 - bw / 2) / bw);
+        hIdx = Math.max(start, Math.min(end, hIdx));
+      }
+      var cells = [];
+      for (var qm = 0; qm < 4; qm++) {
+        var maV = (maArr[qm] && maArr[qm][hIdx] != null) ? maArr[qm][hIdx] : null;
+        ctx.font = 'bold 10px ui-monospace, Consolas, monospace';
+        var wL = ctx.measureText('M' + maPs[qm]).width;
+        ctx.font = '10px ui-monospace, Consolas, monospace';
+        var wV = (maV == null) ? ctx.measureText('--').width : ctx.measureText(fmt(maV)).width;
+        cells.push({ nm: 'M' + maPs[qm], v: maV, col: maC[qm], wL: wL, wV: wV, w: wL + 3 + wV });
+      }
+      var rowW = Math.max(cells[0].w + 8 + cells[1].w, cells[2].w + 8 + cells[3].w);
+      var mBx = x0 + 4, mBy = mainBot - 32;   // 主图底部左上内缩，贴左下角
+      ctx.fillStyle = 'rgba(13,17,23,0.9)';
+      ctx.fillRect(mBx - 3, mBy, rowW + 6, 29);
+      ctx.strokeStyle = T.grid; ctx.lineWidth = 1; ctx.strokeRect(mBx - 3, mBy, rowW + 6, 29);
+      var drawMCell = function (c, xx, yy) {
+        ctx.font = 'bold 10px ui-monospace, Consolas, monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        ctx.fillStyle = c.col; ctx.fillText(c.nm, xx, yy);
+        ctx.font = '10px ui-monospace, Consolas, monospace';
+        ctx.fillStyle = (c.v == null) ? '#6e7681' : T.textHi;
+        ctx.fillText((c.v == null) ? '--' : fmt(c.v), xx + c.wL + 3, yy);
+      };
+      // 2+2 两行两列：第 1 行 M1/M2，第 2 行 M3/M4；第二格紧跟本行第一格右侧（修复 r22 竖排溢出）
+      drawMCell(cells[0], mBx, mBy + 3);
+      drawMCell(cells[1], mBx + cells[0].w + 8, mBy + 3);
+      drawMCell(cells[2], mBx, mBy + 15);
+      drawMCell(cells[3], mBx + cells[2].w + 8, mBy + 15);
+    }
 
     // 日期轴（每隔若干根；右端=当前游戏日必标注，且右对齐贴右边界避免溢出被裁）
     ctx.fillStyle = T.text; ctx.textBaseline = 'top';
@@ -402,24 +501,33 @@
     }
 
     // 副图
+    // r27：十字光标悬停所在 K 线索引（同花顺式——鼠标移到哪根 K 线，副图标题指标值就跟随显示哪根；无悬停 =-1 → 副图取最新/当前游戏日）
+    var hovI = -1;
+    if (this.cross && this.cross.x >= x0 && this.cross.x <= x0 + pw) {
+      hovI = Math.round(start + (this.cross.x - x0 - bw / 2) / bw);
+      hovI = Math.max(start, Math.min(end, hovI));
+    }
     for (var s = 0; s < nSub; s++) {
       var st = mainBot + (s === 0 ? 6 : 0) + s * subH;
-      this._drawSub(this.opts.subs[s], d, start, end, x0, pw, st, Math.max(20, subH - 8), bw, px);
+      this._drawSub(this.opts.subs[s], d, start, end, x0, pw, st, Math.max(20, subH - 8), bw, px, hovI);
     }
 
-    // 顶部信息
+    // 顶部信息：涨跌幅百分比放第一位、紧跟股票名（约留 6 个空格），再列 开/高/低/收
     var last = end, prev = Math.max(0, last - 1);
     var chg = prev >= 0 && d.c[prev] ? (d.c[last] - d.c[prev]) / d.c[prev] * 100 : 0;
-    var ds2 = String(d.d[last]);
+    var name = this.opts.title || (d.name || '') + ' ' + (d.code || '');
     ctx.textAlign = 'left'; ctx.textBaseline = 'top';
     ctx.font = 'bold 12px ui-monospace, Consolas, monospace';
     ctx.fillStyle = T.textHi;
-    ctx.fillText((this.opts.title || (d.name || '') + ' ' + (d.code || '')), x0, 2);
+    ctx.fillText(name, x0, 2);
+    var nw = ctx.measureText(name).width;
     ctx.font = '11px ui-monospace, Consolas, monospace';
+    var spc = ctx.measureText('0').width;   // 等宽字体：用数字宽度近似 1 个空格
     var col = chg >= 0 ? T.up : T.dn;
     ctx.fillStyle = col;
-    ctx.fillText('开' + fmt(d.o[last]) + ' 高' + fmt(d.h[last]) + ' 低' + fmt(d.l[last]) +
-                 ' 收' + fmt(d.c[last]) + '  ' + (chg >= 0 ? '+' : '') + fmt(chg, 2) + '%', x0 + 150, 3);
+    ctx.fillText((chg >= 0 ? '+' : '') + fmt(chg, 2) + '%  开' + fmt(d.o[last]) +
+                 ' 高' + fmt(d.h[last]) + ' 低' + fmt(d.l[last]) + ' 收' + fmt(d.c[last]),
+                 x0 + nw + 6 * spc, 3);
 
     // 十字光标
     if (this.cross && this.cross.x >= x0 && this.cross.x <= x0 + pw) {
@@ -430,13 +538,6 @@
       ctx.beginPath(); ctx.moveTo(cx2, mainTop); ctx.lineTo(cx2, H - this.padB); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(x0, this.cross.y); ctx.lineTo(x0 + pw, this.cross.y); ctx.stroke();
       ctx.setLineDash([]);
-      // 光标价格
-      if (this.cross.y >= mainTop && this.cross.y <= mainBot) {
-        var cp = hi - (this.cross.y - mainTop) / mainH * (hi - lo);
-        ctx.fillStyle = '#30363d'; ctx.fillRect(x0 + pw + 2, this.cross.y - 8, this.padR - 4, 16);
-        ctx.fillStyle = T.textHi; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-        ctx.fillText(fmt(cp), x0 + pw + 5, this.cross.y);
-      }
       // 悬浮信息框
       var info = [this._dateLabelFull(idx)];
       info.push('开' + fmt(d.o[idx]) + ' 收' + fmt(d.c[idx]));
@@ -444,7 +545,7 @@
       info.push('量' + fmtVol(d.v[idx]));
       if (d.t && d.t[idx] != null) info.push('换' + fmt(d.t[idx], 2) + '%');
       ctx.font = '11px ui-monospace, Consolas, monospace';
-      var bw2 = 112, bh2 = info.length * 14 + 8;
+      var bw2 = 136, bh2 = info.length * 14 + 8;
       // 光标在绘图区右半边 → 信息框翻到光标左侧；否则放右侧；硬性夹紧在绘图区内不溢出
       var bx = (cx2 - x0 > pw / 2) ? (cx2 - bw2 - 10) : (cx2 + 10);
       bx = Math.max(x0, Math.min(bx, x0 + pw - bw2));
@@ -453,39 +554,265 @@
       ctx.strokeStyle = '#30363d'; ctx.strokeRect(bx, by, bw2, bh2);
       ctx.fillStyle = T.textHi; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
       info.forEach(function (t, k) { ctx.fillText(t, bx + 6, by + 4 + k * 14); });
+      // 日期后跟当日涨跌幅百分比（红涨绿跌；无前收对比显示 --）
+      var dayPct = 0, hasPrev = idx > 0 && d.c[idx - 1] > 0;
+      if (hasPrev) dayPct = (d.c[idx] - d.c[idx - 1]) / d.c[idx - 1] * 100;
+      ctx.fillStyle = hasPrev ? (dayPct >= 0 ? T.up : T.dn) : '#6e7681';
+      ctx.fillText(hasPrev ? ((dayPct >= 0 ? '+' : '') + fmt(dayPct, 2) + '%') : '--',
+        bx + 6 + ctx.measureText(info[0]).width + 6, by + 4);
+      // 成交量后跟涨跌幅（相对昨日量）：浅红涨 / 蓝青跌，与价格涨跌幅红/绿区分（r22）
+      var hasPrevV = idx > 0 && d.v[idx - 1] > 0;
+      var vPct = hasPrevV ? (d.v[idx] - d.v[idx - 1]) / d.v[idx - 1] * 100 : null;
+      ctx.font = '11px ui-monospace, Consolas, monospace';
+      ctx.fillStyle = hasPrevV ? (vPct >= 0 ? T.volUp : T.volDn) : '#6e7681';
+      ctx.fillText(hasPrevV ? ((vPct >= 0 ? '+' : '') + fmt(vPct, 2) + '%') : '--',
+        bx + 6 + ctx.measureText(info[3]).width + 6, by + 4 + 3 * 14);
       this.hoverIdx = idx;
     } else this.hoverIdx = -1;
+
+    // 主图价格轴「当前价」黄色标签（r22）：y 与该价真实位置对齐
+    // 悬停某根 K 线 → 标该根收盘价；未悬停 → 标最新（当前游戏日）收盘价
+    if (this.opts.pxTag !== false && d.c.length) {
+      var aIdx = end;
+      if (this.cross && this.cross.x >= x0 && this.cross.x <= x0 + pw) {
+        var tI = Math.round(start + (this.cross.x - x0 - bw / 2) / bw);
+        aIdx = Math.max(start, Math.min(end, tI));
+      }
+      if (d.c[aIdx] != null) {
+        var tagP = d.c[aIdx];
+        var tagY = Math.max(mainTop + 8, Math.min(mainBot - 8, py(tagP)));
+        ctx.font = 'bold 11px ui-monospace, Consolas, monospace';
+        var tagTxt = fmt(tagP);
+        var tW = ctx.measureText(tagTxt).width + 10;
+        var tx = x0 + pw + 3;
+        var tRight = x0 + pw + this.padR - 2;
+        if (tx + tW > tRight) tx = Math.max(x0 + pw + 2, tRight - tW);   // 窄边防右侧溢出
+        ctx.fillStyle = '#272c33'; ctx.fillRect(tx, tagY - 8, tW, 16);
+        ctx.strokeStyle = 'rgba(255,207,61,0.65)'; ctx.lineWidth = 1; ctx.strokeRect(tx, tagY - 8, tW, 16);
+        ctx.fillStyle = T.pxTag; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(tagTxt, tx + 5, tagY + 0.5);
+        // 绘图区右缘一小段黄线标出该价高度
+        ctx.strokeStyle = 'rgba(255,207,61,0.55)';
+        ctx.beginPath(); ctx.moveTo(x0 + pw - 7, tagY); ctx.lineTo(x0 + pw, tagY); ctx.stroke();
+      }
+    }
   };
 
-  // 日期标签：opts.baseIdx = 当前游戏日下标（最右永远=今日），向左 T-1/T-2 递减
+  // 日期标签：opts.baseIdx = 开局日（该序列）下标 —— 开局日 = T0，其后 T+1/T+2… 随游戏推进递增，开局前为 T-1/T-2…
   KChart.prototype._dateLabel = function (i) {
     var s = String(this.data.d[i]);
     if (this.opts.baseIdx == null) return s.slice(4, 6) + '/' + s.slice(6, 8);
     var rel = i - this.opts.baseIdx;
-    if (rel === 0) return '今日';
+    if (rel === 0) return 'T0';
     return rel < 0 ? ('T' + rel) : ('T+' + rel);
   };
   KChart.prototype._dateLabelFull = function (i) {
     var s = String(this.data.d[i]);
     if (this.opts.baseIdx == null) return s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6, 8);
     var rel = i - this.opts.baseIdx;
-    if (rel === 0) return '今日';
+    if (rel === 0) return 'T0';
     return rel < 0 ? ('T' + rel) : ('T+' + rel);
   };
 
-  // 副图小标题（同花顺式：指标名 + 当前值），放在副图窗口内顶部
-  function subTitle(kind) {
-    var names = {
-      vol: 'VOL', macd: 'MACD(12,26,9)', kdj: 'KDJ(9,3,3)', rsi: 'RSI(6,12,24)',
-      cci: 'CCI(14)', wr: 'WR(10,6)', bias: 'BIAS(6,12,24)', obv: 'OBV(30)',
-      dmi: 'DMI(14)', atr: 'ATR(14)', roc: 'ROC(12,6)', mtm: 'MTM(12,6)',
-      vr: 'VR(26,6)', psy: 'PSY(12,6)'
-    };
-    return names[kind] || kind.toUpperCase();
+  // ---------- 副图指标参数定义与覆盖（r20：长按/右键可调参数，持久化到本机） ----------
+  // params[]：{ n:参数名, def:默认值, min, max, tip:该参数说明提示 }
+  var SUB_PDEF = {
+    vol: {
+      label: 'VOL', chn: '成交量',
+      desc: '成交量柱状图：柱越高成交越活跃；柱色=当日涨跌（A股红涨绿跌）。价涨量增才健康，价涨量缩要警惕回落。',
+      params: []
+    },
+    macd: {
+      label: 'MACD', chn: '平滑异同移动平均',
+      desc: '趋势型指标：DIF 上穿 DEA 金叉偏多、下穿死叉偏空；红绿柱=多头/空头动能。适合跟随中期趋势。',
+      params: [
+        { n: '快线周期 EMA', def: 12, min: 2, max: 120, tip: 'DIF = 快线EMA − 慢线EMA。越小对价格越敏感、信号越多。同花顺默认 12。' },
+        { n: '慢线周期 EMA', def: 26, min: 5, max: 300, tip: '慢线越长趋势越稳、信号越滞后。同花顺默认 26。' },
+        { n: 'DEA 平滑周期', def: 9, min: 2, max: 120, tip: 'DEA = DIF 的 N 日平滑，金叉/死叉的依据。同花顺默认 9。' }
+      ]
+    },
+    kdj: {
+      label: 'KDJ', chn: '随机指标',
+      desc: '摆动型：K/D 低于 20 超卖、高于 80 超买；J 超过 100 或低于 0 为极端区。金叉死叉灵敏，适合短线。',
+      params: [
+        { n: 'RSV 周期', def: 9, min: 2, max: 100, tip: 'RSV 衡量 N 日内收盘价所处高低位置。同花顺默认 9。' },
+        { n: 'K 平滑周期', def: 3, min: 1, max: 60, tip: 'K = RSV 的 M1 日平滑，越小越灵敏。同花顺默认 3。' },
+        { n: 'D 平滑周期', def: 3, min: 1, max: 60, tip: 'D = K 的 M2 日平滑；J = 3K − 2D。同花顺默认 3。' }
+      ]
+    },
+    rsi: {
+      label: 'RSI', chn: '相对强弱指标',
+      desc: '摆动型：数值高于 70 超买、低于 30 超卖。三条线分别对应短/中/长周期强弱，三线共振更可靠。',
+      params: [
+        { n: '短周期', def: 6, min: 2, max: 60, tip: 'RSI 短线（黄），超买超卖最灵敏。同花顺默认 6。' },
+        { n: '中周期', def: 12, min: 2, max: 120, tip: 'RSI 中线（蓝）。同花顺默认 12。' },
+        { n: '长周期', def: 24, min: 2, max: 240, tip: 'RSI 长线（紫），趋势更稳。同花顺默认 24。' }
+      ]
+    },
+    cci: {
+      label: 'CCI', chn: '顺势指标',
+      desc: '波动型：突破 +100 进入强势区（超买但可持股），跌破 −100 进入弱势区（超卖）。±100 为多空分界。',
+      params: [
+        { n: '统计周期', def: 14, min: 2, max: 240, tip: '周期越短越灵敏、噪音越多。同花顺默认 14。' }
+      ]
+    },
+    wr: {
+      label: 'WR', chn: '威廉指标',
+      desc: '摆动型：数值越高越超卖（接近 100），越低越超买（接近 0）。两条不同周期线互相印证，20/80 为参考线。',
+      params: [
+        { n: '周期 1', def: 10, min: 2, max: 120, tip: 'WR 黄线。同花顺默认 10。' },
+        { n: '周期 2', def: 6, min: 2, max: 120, tip: 'WR 紫线，更短线。同花顺默认 6。' }
+      ]
+    },
+    bias: {
+      label: 'BIAS', chn: '乖离率',
+      desc: '衡量收盘价偏离均线的百分比：偏离过大易向均线回归。正乖离过大警惕回调，负乖离过大可能反弹。',
+      params: [
+        { n: '短均线周期', def: 6, min: 2, max: 120, tip: 'BIAS1（黄）= (收盘−MA6)/MA6。同花顺默认 6。' },
+        { n: '中均线周期', def: 12, min: 2, max: 240, tip: 'BIAS2（蓝）。同花顺默认 12。' },
+        { n: '长均线周期', def: 24, min: 2, max: 480, tip: 'BIAS3（紫）。同花顺默认 24。' }
+      ]
+    },
+    obv: {
+      label: 'OBV', chn: '能量潮',
+      desc: '量能累积线：价涨加当日量、价跌减当日量。OBV 走势与股价背离常预示变盘；黄线为 N 日均线。',
+      params: [
+        { n: '均线周期', def: 30, min: 2, max: 120, tip: 'OBV 的 N 日均线（黄），用于过滤噪音。同花顺默认 30。' }
+      ]
+    },
+    dmi: {
+      label: 'DMI', chn: '趋向指标',
+      desc: '趋势强度：PDI > MDI 多头占优、反之空头；ADX 高于 25 趋势强、低于 20 属震荡。ADXR 为 ADX 的 N 日均值。',
+      params: [
+        { n: '统计周期', def: 14, min: 2, max: 240, tip: '计算 PDI/MDI/ADX 的周期。同花顺默认 14。' }
+      ]
+    },
+    atr: {
+      label: 'ATR', chn: '平均真实波幅',
+      desc: '衡量波动幅度（不判方向）。ATR 高=波动大。实战中常用它设止损：止损距离 ≈ 2×ATR 较合理。',
+      params: [
+        { n: '统计周期', def: 14, min: 2, max: 240, tip: '周期越短越贴近近期波动。同花顺默认 14。' }
+      ]
+    },
+    roc: {
+      label: 'ROC', chn: '变动率',
+      desc: 'N 日涨跌幅百分比，穿越 0 轴是多空切换信号；M 日平滑线辅助过滤噪音。',
+      params: [
+        { n: '变动周期', def: 12, min: 2, max: 240, tip: 'ROC = 今收相对 N 日前收盘的涨跌%。同花顺默认 12。' },
+        { n: '平滑周期', def: 6, min: 2, max: 120, tip: 'ROC 的 M 日均线。同花顺默认 6。' }
+      ]
+    },
+    mtm: {
+      label: 'MTM', chn: '动量线',
+      desc: 'N 日动量 = 今收 − N 日前收盘（元）。大于 0 多方占优，小于 0 空方占优；M 日均线交叉辅助判断。',
+      params: [
+        { n: '动量周期', def: 12, min: 2, max: 240, tip: '同花顺默认 12。' },
+        { n: '平滑周期', def: 6, min: 2, max: 120, tip: 'MTM 的 M 日均线。同花顺默认 6。' }
+      ]
+    },
+    vr: {
+      label: 'VR', chn: '成交量变异率',
+      desc: '量能型：上涨日量 / 下跌日量的比率 ×100。VR 高于 250 注意过热，低于 70 地量区常酝酿底部。',
+      params: [
+        { n: '统计周期', def: 26, min: 5, max: 240, tip: '同花顺默认 26。' },
+        { n: '平滑周期', def: 6, min: 2, max: 120, tip: 'VR 的 M 日均线。同花顺默认 6。' }
+      ]
+    },
+    psy: {
+      label: 'PSY', chn: '心理线',
+      desc: 'N 日内上涨天数占比 ×100：高于 75 过热、低于 25 低迷，50 为多空均衡；M 日平滑辅助。',
+      params: [
+        { n: '统计周期', def: 12, min: 5, max: 120, tip: '同花顺默认 12。' },
+        { n: '平滑周期', def: 6, min: 2, max: 120, tip: 'PSY 的 M 日均线。同花顺默认 6。' }
+      ]
+    },
+    ma: {
+      label: 'MA', chn: '均线（主图叠加）',
+      desc: '主图上叠加的四条简单移动平均：MA5 最快、MA60 最慢（默认 M5/M10/M20/M60）。短均线在长均线上方=多头排列偏强；死叉别急着抄底。改动后主图线条与左下角数值栏同步。',
+      params: [
+        { n: 'MA1 周期', def: 5, min: 2, max: 480, tip: '最快均线（M5）。同花顺主图默认 5。' },
+        { n: 'MA2 周期', def: 10, min: 2, max: 480, tip: '短线均线（M10）。同花顺主图默认 10。' },
+        { n: 'MA3 周期', def: 20, min: 2, max: 480, tip: '中线均线（M20），行情生命线。默认 20。' },
+        { n: 'MA4 周期', def: 60, min: 2, max: 480, tip: '长线均线（M60），趋势牛熊分界。默认 60。' }
+      ]
+    },
+    boll: {
+      label: 'BOLL', chn: '布林带（主图叠加）',
+      desc: '主图上叠加的布林通道：中轨=MA(N)，上下轨=中轨 ± 带宽倍数×标准差。价格贴上轨=强但拥挤，跌破下轨=弱但可能超跌；开口放大=波动加剧。',
+      params: [
+        { n: '统计周期', def: 20, min: 2, max: 240, tip: '中轨 = N 日移动平均，标准差也取 N 日。默认 20。' },
+        { n: '带宽倍数', def: 2, min: 1, max: 5, tip: '上下轨距离 = 倍数 × 标准差。越大带越宽、触轨越难。默认 2。' }
+      ]
+    },
+    'ma-pane': {
+      label: 'MA', chn: '均线（独立分图窗口）',
+      desc: '把均线放进独立副图窗口，方便放大观察均线斜率与多空排列。参数默认与主图一致，可单独调整，也可点下方「与主图一致」一键把主图参数同步过来。',
+      params: [
+        { n: 'MA1 周期', def: 5, min: 2, max: 480, tip: '最快均线。默认 5。' },
+        { n: 'MA2 周期', def: 10, min: 2, max: 480, tip: '短线均线。默认 10。' },
+        { n: 'MA3 周期', def: 20, min: 2, max: 480, tip: '中线均线。默认 20。' },
+        { n: 'MA4 周期', def: 60, min: 2, max: 480, tip: '长线均线。默认 60。' }
+      ]
+    },
+    crowd: {
+      label: '拥挤度', chn: '乖离拥挤度',
+      desc: '衡量收盘价偏离 N 日均线有多"拥挤"：数值 = 乖离距离 ÷ (带宽倍数×标准差)。|值|≥1 已挤到带宽之外，≥1.5 情绪过热、随时均值回归，≥2 极度拥挤；长期贴 0 轴=冷清。±1 虚线为拥挤警戒线。',
+      params: [
+        { n: '均线周期', def: 20, min: 5, max: 240, tip: '均线与标准差统计周期。默认 20。' },
+        { n: '带宽倍数', def: 2, min: 1, max: 5, tip: '拥挤度分母 = 倍数×标准差。越大阈值越松。默认 2。' }
+      ]
+    }
+  };
+  var SUBP_LS = 'sims.subp.v1';
+  var subOver = null;
+  function loadSubOver() {
+    if (subOver) return subOver;
+    subOver = {};
+    try { var raw = localStorage.getItem(SUBP_LS); if (raw) subOver = JSON.parse(raw) || {}; } catch (e) { subOver = {}; }
+    return subOver;
   }
+  // 生效参数（含用户覆盖，越界自动夹回 [min,max]）
+  function subParams(kind) {
+    var def = SUB_PDEF[kind];
+    if (!def) return [];
+    var ov = loadSubOver()[kind];
+    return def.params.map(function (p, i) {
+      var v = (ov && ov[i] != null) ? parseInt(ov[i], 10) : p.def;
+      if (!isFinite(v)) v = p.def;
+      return Math.max(p.min, Math.min(p.max, v));
+    });
+  }
+  // 写入覆盖并持久化（越界自动夹回）
+  function setSubParams(kind, arr) {
+    var def = SUB_PDEF[kind];
+    if (!def) return;
+    var over = loadSubOver();
+    over[kind] = def.params.map(function (p, i) {
+      var v = parseInt(arr && arr[i], 10);
+      if (!isFinite(v)) v = p.def;
+      return Math.max(p.min, Math.min(p.max, v));
+    });
+    try { localStorage.setItem(SUBP_LS, JSON.stringify(over)); } catch (e) {}
+  }
+  // 一键重置全部指标参数（含主图均线/布林带/副图/拥挤度），回到各指标默认值
+  function resetSubParamsAll() {
+    subOver = {};
+    try { localStorage.removeItem(SUBP_LS); } catch (e) {}
+  }
+  // 动态副图小标题：MACD(12,26,9) → 用户改参后自动跟随，如 MACD(10,22,7)
+  function subLabel(kind) {
+    var def = SUB_PDEF[kind];
+    if (!def) return kind.toUpperCase();
+    var p = subParams(kind);
+    return p.length ? (def.label + '(' + p.join(',') + ')') : def.label;
+  }
+  // 副图小标题（同花顺式：指标名 + 当前值），放在副图窗口内顶部
+  function subTitle(kind) { return subLabel(kind); }
 
-  KChart.prototype._drawSub = function (kind, d, start, end, x0, pw, top, h, bw, px) {
+  KChart.prototype._drawSub = function (kind, d, start, end, x0, pw, top, h, bw, px, hovI) {
     var ctx = this.ctx;
+    // r27：标题数值跟随十字光标 —— 悬停某根 K 线取该根指标值；无悬停(或悬停在绘图区外)=-1 → 取最新（当前游戏日）
+    var vi = (hovI >= 0) ? hovI : end;
     // 顶部边框线
     ctx.strokeStyle = T.grid; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x0, top); ctx.lineTo(x0 + pw, top); ctx.stroke();
@@ -530,7 +857,7 @@
         ctx.fillRect(px(i) - bw * 0.34, vBot - hh, bw * 0.68, hh);
       }
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  ' + fmtVol(d.v[end]), titleX, titleY);
+      ctx.fillText(title + '  ' + fmtVol(d.v[vi]), titleX, titleY);
     } else if (kind === 'macd') {
       var m = macd(d.c, 12, 26, 9);
       var mx = 0;
@@ -549,21 +876,22 @@
       }
       yLine(m.dif, T.dif, mY); yLine(m.dea, T.dea, mY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  DIF:' + fmt(m.dif[end], 3) + '  DEA:' + fmt(m.dea[end], 3), titleX, titleY);
+      ctx.fillText(title + '  DIF:' + fmt(m.dif[vi], 3) + '  DEA:' + fmt(m.dea[vi], 3), titleX, titleY);
     } else if (kind === 'kdj') {
       var k = kdj(d.h, d.l, d.c, 9, 3, 3);
       var kY = function (v) { return pTop + pH - (Math.max(-20, Math.min(120, v)) + 20) / 140 * pH; };
       hRef(pTop + pH * 0.2); hRef(pTop + pH * 0.8);
       yLine(k.k, T.kc, kY); yLine(k.d, T.dc, kY); yLine(k.j, T.jc, kY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  K:' + fmt(k.k[end], 1) + '  D:' + fmt(k.d[end], 1) + '  J:' + fmt(k.j[end], 1), titleX, titleY);
+      ctx.fillText(title + '  K:' + fmt(k.k[vi], 1) + '  D:' + fmt(k.d[vi], 1) + '  J:' + fmt(k.j[vi], 1), titleX, titleY);
     } else if (kind === 'rsi') {
-      var r6 = rsi(d.c, 6), r12 = rsi(d.c, 12), r24 = rsi(d.c, 24);
+      var p = subParams('rsi');
+      var r6 = rsi(d.c, p[0]), r12 = rsi(d.c, p[1]), r24 = rsi(d.c, p[2]);
       var rY = function (v) { return pTop + pH - Math.max(0, Math.min(100, v)) / 100 * pH; };
       hRef(pTop + pH * 0.2, '#30363d'); hRef(pTop + pH * 0.8, '#30363d');   // 20/80 参考
       yLine(r6, T.rsi6, rY); yLine(r12, T.rsi12, rY); yLine(r24, T.rsi24, rY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  ' + fmt(r6[end], 1) + '/' + fmt(r12[end], 1) + '/' + fmt(r24[end], 1), titleX, titleY);
+      ctx.fillText(title + '  ' + fmt(r6[vi], 1) + '/' + fmt(r12[vi], 1) + '/' + fmt(r24[vi], 1), titleX, titleY);
     } else if (kind === 'cci') {
       var cc = cci(d.h, d.l, d.c, 14);
       var cm = 0;
@@ -574,14 +902,14 @@
       hRef(cY(100)); hRef(cY(-100));
       yLine(cc, T.cci, cY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  ' + fmt(cc[end], 1), titleX, titleY);
+      ctx.fillText(title + '  ' + fmt(cc[vi], 1), titleX, titleY);
     } else if (kind === 'wr') {
       var w1 = wr(d.h, d.l, d.c, 10), w2 = wr(d.h, d.l, d.c, 6);
       var wY = function (v) { return pTop + pH - Math.max(0, Math.min(100, v)) / 100 * pH; };
       hRef(pTop + pH * 0.2); hRef(pTop + pH * 0.8);   // 20(超买)/80(超卖) 参考
       yLine(w1, T.wr1, wY); yLine(w2, T.wr2, wY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  ' + fmt(w1[end], 1) + '/' + fmt(w2[end], 1), titleX, titleY);
+      ctx.fillText(title + '  ' + fmt(w1[vi], 1) + '/' + fmt(w2[vi], 1), titleX, titleY);
     } else if (kind === 'bias') {
       var b6 = bias(d.c, 6), b12 = bias(d.c, 12), b24 = bias(d.c, 24);
       var bm = 0;
@@ -593,7 +921,7 @@
       ctx.strokeStyle = '#30363d'; ctx.beginPath(); ctx.moveTo(x0, bY(0)); ctx.lineTo(x0 + pw, bY(0)); ctx.stroke();
       yLine(b6, T.bias6, bY); yLine(b12, T.bias12, bY); yLine(b24, T.bias24, bY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  ' + fmt(b6[end], 2) + '/' + fmt(b12[end], 2) + '/' + fmt(b24[end], 2), titleX, titleY);
+      ctx.fillText(title + '  ' + fmt(b6[vi], 2) + '/' + fmt(b12[vi], 2) + '/' + fmt(b24[vi], 2), titleX, titleY);
     } else if (kind === 'obv') {
       var o = obv(d.c, d.v, 30);
       var oLo = 0, oHi = 0;
@@ -606,15 +934,15 @@
       var oY = function (v) { return pTop + (oHi - v) / (oHi - oLo) * pH; };
       yLine(o.obv, T.obv, oY); yLine(o.ma, T.obvma, oY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  ' + fmtBig(o.obv[end]), titleX, titleY);
+      ctx.fillText(title + '  ' + fmtBig(o.obv[vi]), titleX, titleY);
     } else if (kind === 'dmi') {
       var dm = dmi(d.h, d.l, d.c, 14);
       var dY = function (v) { return pTop + pH - Math.max(0, Math.min(100, v)) / 100 * pH; };
       yLine(dm.pdi, T.pdi, dY); yLine(dm.mdi, T.mdi, dY);
       yLine(dm.adx, T.adx, dY); yLine(dm.adxr, T.adxr, dY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  PDI:' + fmt(dm.pdi[end], 1) + '  MDI:' + fmt(dm.mdi[end], 1) +
-        '  ADX:' + fmt(dm.adx[end], 1), titleX, titleY);
+      ctx.fillText(title + '  PDI:' + fmt(dm.pdi[vi], 1) + '  MDI:' + fmt(dm.mdi[vi], 1) +
+        '  ADX:' + fmt(dm.adx[vi], 1), titleX, titleY);
     } else if (kind === 'atr') {
       var at = atr(d.h, d.l, d.c, 14);
       var am = 0;
@@ -623,7 +951,7 @@
       var aY = function (v) { return pTop + pH - v / am * pH; };
       yLine(at, T.atr, aY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  ' + fmt(at[end], 2), titleX, titleY);
+      ctx.fillText(title + '  ' + fmt(at[vi], 2), titleX, titleY);
     } else if (kind === 'roc') {
       var rc = roc(d.c, 12, 6);
       var rm = 0;
@@ -635,7 +963,7 @@
       ctx.strokeStyle = '#30363d'; ctx.beginPath(); ctx.moveTo(x0, rcY(0)); ctx.lineTo(x0 + pw, rcY(0)); ctx.stroke();
       yLine(rc.roc, T.roc, rcY); yLine(rc.ma, T.rocma, rcY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  ' + fmt(rc.roc[end], 2), titleX, titleY);
+      ctx.fillText(title + '  ' + fmt(rc.roc[vi], 2), titleX, titleY);
     } else if (kind === 'mtm') {
       var mm = mtm(d.c, 12, 6);
       var mmm = 0;
@@ -647,7 +975,7 @@
       ctx.strokeStyle = '#30363d'; ctx.beginPath(); ctx.moveTo(x0, mmY(0)); ctx.lineTo(x0 + pw, mmY(0)); ctx.stroke();
       yLine(mm.mtm, T.mtm, mmY); yLine(mm.ma, T.mtmma, mmY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  ' + fmt(mm.mtm[end], 2), titleX, titleY);
+      ctx.fillText(title + '  ' + fmt(mm.mtm[vi], 2), titleX, titleY);
     } else if (kind === 'vr') {
       var vv = vr(d.c, d.v, 26, 6);
       var vrm = 0;
@@ -656,14 +984,60 @@
       var vrY = function (v) { return pTop + pH - Math.max(0, v) / vrm * pH; };
       yLine(vv.vr, T.vr, vrY); yLine(vv.ma, T.vrma, vrY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  ' + fmt(vv.vr[end], 0), titleX, titleY);
+      ctx.fillText(title + '  ' + fmt(vv.vr[vi], 0), titleX, titleY);
     } else if (kind === 'psy') {
-      var ps = psy(d.c, 12, 6);
+      var p = subParams('psy');
+      var ps = psy(d.c, p[0], p[1]);
       var pY = function (v) { return pTop + pH - Math.max(0, Math.min(100, v)) / 100 * pH; };
       hRef(pTop + pH * 0.5, '#30363d'); hRef(pTop + pH * 0.25); hRef(pTop + pH * 0.75);
       yLine(ps.psy, T.psy, pY); yLine(ps.ma, T.psyma, pY);
       ctx.fillStyle = T.text;
-      ctx.fillText(title + '  ' + fmt(ps.psy[end], 0), titleX, titleY);
+      ctx.fillText(title + '  ' + fmt(ps.psy[vi], 0), titleX, titleY);
+    } else if (kind === 'ma-pane') {
+      // 均线独立分图窗口（参数独立于主图，可「与主图一致」同步）
+      var mpP = subParams('ma-pane');
+      if (!mpP.length) mpP = [5, 10, 20, 60];
+      if (mpP.length < 4) mpP = mpP.concat([5, 10, 20, 60]).slice(0, 4);
+      var mpPs = mpP.slice(0, 4);
+      var mpC = [T.ma5, T.ma10, T.ma20, T.ma60];
+      var mpA = mpPs.map(function (n) { return sma(d.c, n); });
+      var mMin = Infinity, mMax = -Infinity;
+      for (var qm2 = 0; qm2 < 4; qm2++) {
+        var maL = mpA[qm2];
+        for (var i2 = start; i2 <= end; i2++) {
+          if (maL[i2] == null) continue;
+          if (maL[i2] < mMin) mMin = maL[i2];
+          if (maL[i2] > mMax) mMax = maL[i2];
+        }
+      }
+      if (!(mMax > mMin)) { mMin = 0; mMax = 1; }
+      var mPad2 = (mMax - mMin) * 0.05; mMin -= mPad2; mMax += mPad2;
+      var mPY = function (v) { return pTop + (mMax - v) / (mMax - mMin) * pH; };
+      for (var qm3 = 0; qm3 < 4; qm3++) yLine(mpA[qm3], mpC[qm3], mPY);
+      ctx.fillStyle = T.text;
+      ctx.fillText(title, titleX, titleY);
+    } else if (kind === 'crowd') {
+      // 拥挤度（乖离拥挤度）：(收盘 − MA(N)) / (K×σ)，±1 为拥挤警戒线
+      var cp = subParams('crowd');
+      var cn = (cp[0] && cp[0] >= 5) ? cp[0] : 20;
+      var ck = (cp[1] && cp[1] >= 1) ? cp[1] : 2;
+      var cMid = sma(d.c, cn), cd = new Array(d.c.length).fill(null);
+      for (var i3 = 0; i3 < d.c.length; i3++) {
+        if (cMid[i3] == null) continue;
+        var cs = 0;
+        for (var q4 = i3 - cn + 1; q4 <= i3; q4++) cs += Math.pow(d.c[q4] - cMid[i3], 2);
+        var csd = Math.sqrt(cs / cn);
+        cd[i3] = csd > 0 ? (d.c[i3] - cMid[i3]) / (ck * csd) : 0;
+      }
+      var cMx = 1.2;
+      for (var i4 = start; i4 <= end; i4++) if (cd[i4] != null && Math.abs(cd[i4]) > cMx) cMx = Math.abs(cd[i4]);
+      cMx *= 1.12;
+      var cY = function (v) { return pTop + pH / 2 - v / cMx * (pH / 2); };
+      ctx.strokeStyle = '#30363d'; ctx.beginPath(); ctx.moveTo(x0, cY(0)); ctx.lineTo(x0 + pw, cY(0)); ctx.stroke();
+      hRef(cY(1), '#4b5563'); hRef(cY(-1), '#4b5563');
+      yLine(cd, T.crowd, cY);
+      ctx.fillStyle = T.text;
+      ctx.fillText(title + '  ' + fmt(cd[vi], 2), titleX, titleY);
     }
   };
 
@@ -767,6 +1141,8 @@
     sma: sma, ema: ema, macd: macd, kdj: kdj, boll: boll,
     rsi: rsi, cci: cci, wr: wr, bias: bias, obv: obv, dmi: dmi,
     atr: atr, roc: roc, mtm: mtm, vr: vr, psy: psy,
-    fmtBig: fmtBig, subTitle: subTitle, theme: T
+    fmtBig: fmtBig, subTitle: subTitle, theme: T,
+    SUB_PDEF: SUB_PDEF, subParams: subParams, setSubParams: setSubParams, subLabel: subLabel,
+    resetSubParamsAll: resetSubParamsAll
   };
 })(window);

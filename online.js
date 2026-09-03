@@ -1,20 +1,21 @@
-/* online.js — 在线版数据加载器 v2（M1 提速版）
+/* online.js — 在线版数据加载器 v3（内置库 v2）
  * 数据优先级（每只标的按序尝试，命中即停）：
  *   L0 本地缓存(localStorage, 紧凑串)         —— 重复游玩/换池/续档秒开
- *   L1 静态K线库 jsdelivr CDN(每股一个分片)   —— 全局 CDN，单请求全量（由 bake 系统供给）
+ *   L1.5 网页内置离线库(股票+ETF K线烘焙文件)  —— 同源打包，无需联网；离线版止于 baked_at，需联网补最后 1-2 天
+ *   L1 jsdelivr CDN(每股一个分片)             —— 全局 CDN 单请求全量（兜底备用）
  *   L2 东财 push2his（单请求全量，2026-09-03 实测 CORS:*）
  *   L3 腾讯 gtimg（分窗 ≤640 根/窗）
  *   L4 新浪 CN JSONP（仅末尾约 1000 根，最后兜底）
- * 依赖: window.GAME_INDEX（提供全局交易日轴与区间终点）
+ * 依赖: window.GAME_KLINE / window.GAME_ETF / window.GAME_INDEX（提供股票/ETF 烘焙库与全局交易日轴）
  */
 (function (g) {
   'use strict';
   var IX_END = null;        // 全局轴终点 yyyymmdd（init 传入）
   var IX_END_ISO = '';
   var L1 = { base: 'https://cdn.jsdelivr.net/gh/a3924/ashare-kline-db@main', ver: null, on: false, checked: false };
-  var CACHE_PFX = 'simsA.kl1.';   // 缓存 key 前缀（改格式时换号）
+  var CACHE_PFX = 'simsA.kl2.';   // 缓存 key 前缀（改格式/口径时换号；kl1→kl2 因旧缓存混入不复权断层数据）
   var CACHE_MAX = 40;             // 最多缓存 40 只（≈1.3MB 紧凑串，留 localStorage 余量）
-  var stats = { src: { cache: 0, cdn: 0, em: 0, tx: 0, sina: 0 }, bytes: 0 };
+  var stats = { src: { cache: 0, off: 0, cdn: 0, em: 0, tx: 0, sina: 0 }, bytes: 0 };
 
   // ---------- 工具 ----------
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -56,7 +57,8 @@
     throw lastErr || new Error('fetch fail');
   }
 
-  // 统一行格式 [yyyymmdd, open, close, high, low, vol]，压缩为紧凑串 "dt,o,c,h,l,v|dt,.."
+  // 统一行格式 [yyyymmdd, open, close, high, low, vol]（与东财原始列序一致），压缩为紧凑串 "dt,o,c,h,l,v|dt,.."
+  // ⚠ app.js attachK 按 o/c/h/l/v 回填（close=第3列）；请勿按 o/h/l/c 误读，否则 close 会变成 low、K线几乎全绿
   function encRows(rows) {
     var parts = [];
     for (var i = 0; i < rows.length; i++) {
@@ -105,7 +107,22 @@
     } catch (e) { /* quota/隐私模式：忽略 */ }
   }
 
-  // ---------- 静态库探测（L1） ----------
+  // ---------- 网页内置离线库（L1.5：GAME_KLINE 130 只股 + GAME_ETF 20 只 ETF，无网络秒命中） ----------
+  // 列存储 {d:[],o:[],c:[],h:[],l:[],v:[]} → 转统一行序 [yyyymmdd,o,c,h,l,v]
+  function loadOfflineRows(off) {
+    var rows = [];
+    var n = off.d.length;
+    for (var i = 0; i < n; i++) rows.push([off.d[i], off.o[i], off.c[i], off.h[i], off.l[i], off.v[i]]);
+    return rows;
+  }
+  function findOffline(code) {
+    var src = null, off = null;
+    if (g.GAME_KLINE && g.GAME_KLINE.stocks && g.GAME_KLINE.stocks[code]) { src = 'KLINE'; off = g.GAME_KLINE.stocks[code]; }
+    else if (g.GAME_ETF && g.GAME_ETF.etfs && g.GAME_ETF.etfs[code]) { src = 'ETF'; off = g.GAME_ETF.etfs[code]; }
+    return off ? { src: src, off: off, end: off.d[off.d.length - 1], n: off.d.length } : null;
+  }
+
+  // ---------- 静态库探测（L1：jsdelivr 兜底备用，国内访问经常失效） ----------
   async function checkL1() {
     if (L1.checked) return L1.on;
     L1.checked = true;
@@ -247,37 +264,88 @@
     return acc;
   }
 
-  // 拉一只完整K线（含缓存/级联）；成功返回升序 rows
+  // ---------- 复权断层守卫（除权/拆分不得显示成真实大跌） ----------
+  // A股挂牌基金（ETF/LOF：深 15/16 段、沪 50/51/56/58 段）场内单日涨跌停仅 ±10%；
+  // 股票限 ±10/20/30%。故单日收盘跌幅超阈值只可能是"不复权"残留（新浪裸价 / 旧版本地缓存），
+  // 而前复权序列会把 份额拆分/送转 熨平成连续曲线，绝不该出现这种断层。
+  function isFund(code) { return /^(1[5-9]|5[0168])\d{4}$/.test(code); }
+  function artifactAt(rows, thr) {
+    // 跳过开头 5 根：避开新股上市初期无涨跌幅限制的合法巨震（主板首日可 -36%）
+    for (var i = 5; i < rows.length; i++) {
+      var c0 = rows[i - 1][2], c1 = rows[i][2];
+      if (c0 > 0 && c1 / c0 <= thr) return { d: rows[i][0], c0: c0, c1: c1, r: c1 / c0 };
+    }
+    return null;
+  }
+
+  // 拉一只完整K线（含缓存/级联/复权守卫）；成功返回升序 rows
   async function fetchKLine(code) {
+    var thr = isFund(code) ? 0.66 : 0.62;   // 基金拆分类约腰斩(0.5)；股票大比例送转约 0.5-0.6
     var cac = loadCache(code);
-    if (cac && cac.end >= IX_END && cac.rows.length) { stats.src.cache++; return cac.rows; }
-    if (!L1.checked) await checkL1();
+    // 缓存必须 完整(覆盖到轴终点) 且 无复权断层，才能直接命中；否则作废改走联网前复权源
+    if (cac && cac.end >= IX_END && cac.rows.length && !artifactAt(cac.rows, thr)) {
+      stats.src.cache++;
+      return cac.rows;
+    }
+    if (cac) {
+      try { localStorage.removeItem(CACHE_PFX + code); } catch (e) {}   // 旧缓存可能混入早期裸价断层数据
+      cac = null;
+    }
 
     var acc = {};
-    if (cac && cac.rows.length) { for (var i0 = 0; i0 < cac.rows.length; i0++) acc[cac.rows[i0][0]] = cac.rows[i0]; }
-    var fromISO = cac && cac.rows.length ? isoOf(dayAfter(cac.rows[cac.rows.length - 1][0])) : '2021-09-01';
+
+    // L1.5 网页内置离线库（GAME_KLINE 130股 + GAME_ETF 20只）—— 命中即秒返且零网络；end<IX_END 继续走联网补尾
+    var offHit = findOffline(code), offBad = false;
+    if (offHit) {
+      var offRows = loadOfflineRows(offHit.off);
+      var offArt = artifactAt(offRows, thr);
+      if (offArt) {
+        // 内置库该标的含复权断层（烘焙污染，如 601138/002230 @2024-01-10）→ 放弃离线，
+        // 改走联网前复权源整段覆盖；仅当联网同样断层才剔除该标的。
+        offBad = true; offHit = null;
+      } else if (offHit.end >= IX_END) {
+        stats.src.off++;
+        if (offRows.length) saveCache(code, offRows);
+        return offRows;
+      } else {
+        stats.src.off++;
+        for (var i1 = 0; i1 < offRows.length; i1++) acc[offRows[i1][0]] = offRows[i1];
+      }
+    }
+    if (offBad) { try { localStorage.removeItem(CACHE_PFX + code); } catch (e) {} }
+    // 本地未解决（既无 L0 缓存也无 L1.5 内置库命中）才探测 L1 jsdelivr；这样 A 池/C 池 130 子集内完全不碰网络
+    if (!L1.checked) await checkL1();
+
+    var fromISO = cac && cac.rows.length ? isoOf(dayAfter(cac.rows[cac.rows.length - 1][0])) :
+                  offHit ? isoOf(dayAfter(offHit.end)) : '2021-09-01';
     var got = false;
 
-    // L1 CDN（无缓存时优先；命中即整段全量）
-    if (!got && L1.on && !cac) {
+    // L1 CDN（兜底备用；国内常 404/超时，2.6s 静默失败）
+    if (!got && L1.on && !cac && !offHit) {
       try { mergeRows(acc, await fetchCdn(code)); got = true; stats.src.cdn++; } catch (e) {}
     }
-    // L2 东财
+    // L2 东财（fqt=1 前复权）
     if (!got) {
       try { mergeRows(acc, await fetchEastmoney(code, fromISO)); got = true; stats.src.em++; } catch (e) {}
     }
-    // L3 腾讯（缓存未满时也可续尾）
+    // L3 腾讯（fqkline qfq 前复权）
     if (!got) {
       try { mergeRows(acc, await fetchTencent(code, fromISO)); got = true; stats.src.tx++; } catch (e) {}
     }
-    // L4 新浪
+    // L4 新浪（JSONP，裸价不复权 —— 仅当前复权源全部不可达时兜底，随后由复权守卫拦截断层）
     if (!got) {
       try { mergeRows(acc, await fetchSina(code)); got = true; stats.src.sina++; } catch (e) {}
     }
     var rows = Object.keys(acc).map(Number).sort(function (a, b) { return a - b; })
       .map(function (d) { return acc[d]; });
-    if (!got && !cac) throw new Error('fetch fail ' + code);
-    // 兜底：无任何网络源但已有缓存（可能不完整，交给上层校验是否覆盖游戏区间）
+    if (!got && !cac && !offHit) throw new Error('fetch fail ' + code);
+    // 复权守卫：宁可把该标的剔出本局（上层会 toast 提示），也绝不让拆分/送转断层冒充真实暴跌
+    var art = artifactAt(rows, thr);
+    if (art) {
+      try { localStorage.removeItem(CACHE_PFX + code); } catch (e) {}   // 清掉坏缓存，避免下局反复踩雷
+      throw new Error('fq-artifact@' + art.d + ' ' + code);
+    }
+    // 兜底：无任何网络源但已有缓存/离线库（可能不完整，交给上层校验是否覆盖游戏区间）
     if (rows.length) saveCache(code, rows);
     return rows;
   }
@@ -302,6 +370,10 @@
     var workers = [];
     for (var i = 0; i < Math.min(concurrency, codes.length); i++) workers.push(worker());
     await Promise.all(workers);
+    try {
+      var s = stats.src;
+      console.info('[fetchMany] done:', codes.length, '只 | 命中 cache=' + s.cache, '内置库=' + s.off, 'CDN=' + s.cdn, '东财=' + s.em, '腾讯=' + s.tx, '新浪=' + s.sina);
+    } catch (e) {}
     return out;
   }
 
