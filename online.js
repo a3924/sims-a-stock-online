@@ -111,7 +111,7 @@
     L1.checked = true;
     try {
       var j = await fetchJSON(L1.base + '/manifest.json', 0, 2600);
-      if (j && j.ver && j.end >= IX_END - 5) {   // manifest 接近当前轴终点才启用
+      if (j && j.ver && j.end >= IX_END - 5 && j.n >= 5000) {   // manifest 完整(≥5000只)且接近轴终点才启用 L1
         L1.on = true; L1.ver = j.ver;
       }
     } catch (e) { L1.on = false; }
