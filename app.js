@@ -63,7 +63,7 @@
   // 游戏中隐藏真实日期（只显示相对交易日 T+n），真实区间仅在结算页"显示真实日期"揭晓。
   var HIDE = true;
   var GAME_TITLE = '我的模拟人生·A股版';   // 游戏名（多处复用）
-  var GAME_VERSION = 'v20260903.online1';   // 在线版版本号：与离线版互不兼容存档（旧档自动失效）
+  var GAME_VERSION = 'v20260903.online3';   // v3：多源行情+缓存 / 全市场+内置+自定义池 / 手机竖屏单列50根K（旧档自动失效）
 
   // 全局日期轴索引，用于相对交易日换算
   var DAY_IDX = {};
@@ -109,6 +109,9 @@
   function cls(v) { return v > 0 ? 'up' : (v < 0 ? 'dn' : ''); }
   function fmtDate(d) { var s = String(d); return s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6, 8); }
   function el(id) { return document.getElementById(id); }
+  // 手机版判定：窄屏（<881px）→ 竖屏单列、K线默认 50 根；桌面默认 100 根
+  function isNarrow() { return (window.innerWidth || document.documentElement.clientWidth) <= 880; }
+  function defaultBars() { return isNarrow() ? 50 : 100; }
 
   // ---------- 临时存档（cookie 为主 + localStorage 兜底） ----------
   // 说明：cookie 写紧凑版（受 ~4KB 单条限制，流水过多时自动截断）；localStorage 写完整版。
@@ -281,33 +284,100 @@
     return s;
   }
 
-  // 抽 18 只：白马3 / 蓝筹3 / 妖股3 / ST2 / 周期4 / ETF3，同行业≤2（ETF 同为"ETF"行业不受限）
-  function pickPoolFromUni(excludeCodes) {
-    var byCat = { white: [], blue: [], monster: [], st: [], cycle: [], etf: [] };
+  // ---------- 股票池体系（M3） ----------
+  // 池来源：curSrc = {kind:'uni'|'builtin'|'mine', id}
+  var PL = global.GAME_POOLS || { builtin: [] };
+  var POOLS_LS = 'sims.pools.v1';
+  var curSrc = { kind: 'uni', id: '' };
+  var NP_MODAL_OPEN = false;
+
+  function uniAllObjs() {
+    var arr = [];
     Object.keys(KL.stocks).forEach(function (c) {
       var s = KL.stocks[c];
-      if (!byCat[s.cat]) return;
-      byCat[s.cat].push({ code: c, name: s.name, ind: s.ind, cat: s.cat });
+      arr.push({ code: c, name: s.name, ind: s.ind, cat: s.cat });
     });
-    var need = { white: 3, blue: 3, monster: 3, st: 2, cycle: 4, etf: 3 };
-    var pool = [], guardT = 0;
-    Object.keys(need).forEach(function (cat) {
-      var arr = byCat[cat].slice(), got = 0, guard = 0;
-      while (got < need[cat] && arr.length && guard < 800) {
-        guard++; guardT++;
-        if (guardT > 6000) break;
+    return arr;
+  }
+  function listMinePools() {
+    try { return JSON.parse(localStorage.getItem(POOLS_LS) || '[]'); } catch (e) { return []; }
+  }
+  function saveMinePools(arr) {
+    try { localStorage.setItem(POOLS_LS, JSON.stringify(arr)); } catch (e) {}
+  }
+  function poolLabel(src) {
+    if (!src) return '全市场随机';
+    if (src.kind === 'builtin') { for (var i = 0; i < PL.builtin.length; i++) if (PL.builtin[i].id === src.id) return PL.builtin[i].name; }
+    if (src.kind === 'mine') { var m = listMinePools(); for (var j = 0; j < m.length; j++) if (m[j].id === src.id) return m[j].name; }
+    return '全市场随机';
+  }
+  // 当前池的候选对象列表（uni = 全市场 5400+ 只）
+  function resolveCands(src) {
+    src = src || curSrc;
+    if (!src || src.kind === 'uni') return uniAllObjs();
+    var codes = null;
+    if (src.kind === 'builtin') {
+      for (var i = 0; i < PL.builtin.length; i++) if (PL.builtin[i].id === src.id) { codes = PL.builtin[i].codes; break; }
+    } else if (src.kind === 'mine') {
+      var m = listMinePools();
+      for (var j = 0; j < m.length; j++) if (m[j].id === src.id) { codes = m[j].codes; break; }
+    }
+    var out = [];
+    (codes || []).forEach(function (c) {
+      var s = KL.stocks[c];
+      if (s) out.push({ code: c, name: s.name, ind: s.ind, cat: s.cat });
+    });
+    return out;
+  }
+  function candsSize(src) { return resolveCands(src).length; }
+
+  // 从候选池抽 ≤18 只：按分类配额优先，配额抽不满则随机补齐。
+  // 全市场随机(uni)保留"同行业≤2"分散约束；主题/自定义池为该主题刻意集中，不套用该约束。
+  function samplePool(cands, excludeCodes) {
+    excludeCodes = excludeCodes || [];
+    var excl = {};
+    excludeCodes.forEach(function (c) { excl[c] = 1; });
+    var need = [['monster', 3], ['white', 3], ['blue', 3], ['st', 2], ['cycle', 4], ['etf', 3]];
+    var byCat = {};
+    cands.forEach(function (o) { (byCat[o.cat] = byCat[o.cat] || []).push(o); });
+    var pool = [], used = {};
+    var isUni = curSrc.kind === 'uni';
+    function okInd(o) {
+      if (!isUni || o.cat === 'etf') return true;
+      var cnt = 0;
+      pool.forEach(function (p) { if (p.ind === o.ind) cnt++; });
+      return cnt < 2;
+    }
+    need.forEach(function (pair) {
+      var cat = pair[0], n = pair[1];
+      var arr = (byCat[cat] || []).filter(function (o) { return !used[o.code] && !excl[o.code]; });
+      while (n > 0 && arr.length) {
         var i = Math.floor(Math.random() * arr.length);
-        var e = arr[i];
-        if (excludeCodes.indexOf(e.code) >= 0) { arr.splice(i, 1); continue; }
-        if (pool.some(function (p) { return p.code === e.code; })) { arr.splice(i, 1); continue; }
-        var cnt = 0;
-        pool.forEach(function (p) { if (p.ind === e.ind) cnt++; });
-        if (cnt >= 2 && e.cat !== 'etf') continue;
-        pool.push(e); arr.splice(i, 1); got++;
+        var e = arr.splice(i, 1)[0];
+        if (okInd(e)) { pool.push(e); used[e.code] = 1; }
+        n--;
       }
     });
+    // 补齐到 18（允许突破分类配额，保证可玩标的足量）
+    var rest = cands.filter(function (o) { return !used[o.code] && !excl[o.code]; });
+    while (pool.length < 18 && rest.length) {
+      var j = Math.floor(Math.random() * rest.length);
+      var r = rest.splice(j, 1)[0];
+      if (okInd(r)) { pool.push(r); used[r.code] = 1; }
+    }
     return pool;
   }
+  // 兜底补抽替换：优先当前池内同类别；池内没有该类则全市场同类别
+  function replaceFrom(cands, cat, excludeCodes) {
+    var c2 = (cands || []).filter(function (o) { return o.cat === cat && excludeCodes.indexOf(o.code) < 0; });
+    if (c2.length) return c2[Math.floor(Math.random() * c2.length)];
+    return randByCat(cat, excludeCodes);
+  }
+  // 全市场抽取（保留原函数名兼容旧调用路径）
+  function pickPoolFromUni(excludeCodes) {
+    return samplePool(uniAllObjs(), excludeCodes);
+  }
+  // 从全部(含池)候选中按类别随机（替换补抽用；cands 为空则全市场）
   function randByCat(cat, excludeCodes) {
     var arr = [];
     Object.keys(KL.stocks).forEach(function (c) {
@@ -337,12 +407,12 @@
   }
 
   // 确保一组标的数据就绪：未拉过的联网获取；新股池若拉取失败/未上市/停摆，则按 cat 补抽替换（allowReplace）
-  async function ensureData(poolObjs, startIdx, allowReplace, onProg) {
+  async function ensureData(poolObjs, startIdx, allowReplace, onProg, cands) {
     var final = poolObjs.slice();
     for (var round = 0; round < 4; round++) {
       var pend = final.filter(function (p) { return !loadedOf(p.code); });
       if (!pend.length) return { pool: final, bad: [] };
-      var res = await OL.fetchMany(pend.map(function (p) { return p.code; }), 4, onProg);
+      var res = await OL.fetchMany(pend.map(function (p) { return p.code; }), 6, onProg);
       var bad = [];
       pend.forEach(function (p) {
         var rows = res[p.code];
@@ -355,7 +425,7 @@
       var excl = final.map(function (p) { return p.code; });
       var rep = [];
       bad.forEach(function (b) {
-        var c2 = randByCat(b.cat, excl);
+        var c2 = replaceFrom(cands, b.cat, excl);
         if (c2) { rep.push(c2); excl.push(c2.code); }
       });
       if (!rep.length) return { pool: final, bad: bad };
@@ -367,10 +437,14 @@
   // 开新局：清档 → 从全市场抽 18 → 在线拉数（可替换补齐）→ 进入选股屏
   async function beginNewSession() {
     clearSave();
-    busy(true, '正在抽取标的', '正在从全市场 5400+ 只中随机抽取 18 只，并联网获取 5 年日K（约 5~15 秒，需联网）…');
+    var label = poolLabel(curSrc), size = candsSize(curSrc);
+    busy(true, '正在抽取标的', '池来源：<b>' + label + '</b>（候选 ' + size + ' 只）→ 抽取 ≤18 只并获取 5 年日K：静态库CDN/东财/腾讯多源级联+本地缓存（重复游玩秒开）…');
     var startIdx = randStart();
-    var pool = pickPoolFromUni([]);
-    var r = await ensureData(pool, startIdx, true, onProg);
+    var cands = resolveCands(curSrc);
+    if (cands.length < 10) { retryFn = beginNewSession; return busyErr('当前池有效标的仅 ' + cands.length + ' 只，不足 10 只无法开局。请换一个池或在「＋新建自定义池」中建更大的池。'); }
+    var pool = samplePool(cands, []);
+    if (pool.length < 10) { retryFn = beginNewSession; return busyErr('当前池可抽取标的不足 10 只，无法开局。请换一个池或新建更大的池。'); }
+    var r = await ensureData(pool, startIdx, true, onProg, cands);
     if (r.bad && r.bad.length) {
       retryFn = beginNewSession;
       return busyErr('部分标的无法获取行情：' + r.bad.map(function (b) { return b.name; }).join('、') + '。请检查网络后重试。');
@@ -389,7 +463,7 @@
     if (!o) { clearSave(); var rb0 = el('btn-resume'); if (rb0) rb0.style.display = 'none'; toast('没有可用存档'); return; }
     var objs = o.pool.filter(function (c) { return KL.stocks[c]; });
     if (objs.length !== o.pool.length) { clearSave(); toast('存档标的已失效，重开新局'); beginNewSession(); return; }
-    busy(true, '正在读取存档', '正在联网获取存档内 18 只标的历史行情（约 5~15 秒）…');
+    busy(true, '正在读取存档', '正在获取存档内 18 只标的历史行情（命中本地缓存将秒开）…');
     var r = await ensureData(objs.map(function (c) { var s = KL.stocks[c]; return { code: c, name: s.name, ind: s.ind, cat: s.cat }; }),
       o.startIdx, false, onProg);
     if (r.bad && r.bad.length) {
@@ -422,10 +496,12 @@
 
     // 股票列表
     var html = '';
+    var etfN = 0;
     S.pool.forEach(function (p) {
       var i = S.map[p.code][DAYS[S.curIdx]];
       var st = KL.stocks[p.code];
       var px = i != null ? st.c[i] : null;
+      if (p.cat === 'etf') etfN++;
       html += '<div class="pool-item' + (p.code === S.sel ? ' on' : '') + '" data-code="' + p.code + '">' +
         '<div class="pi-name">' + p.name + '<span class="tag t-' + p.cat + '">' +
         ({ white: '白马', blue: '蓝筹', monster: '妖股', st: 'ST', cycle: '周期', etf: 'ETF' })[p.cat] + '</span></div>' +
@@ -436,6 +512,8 @@
     Array.prototype.forEach.call(el('pool-list').children, function (node) {
       node.onclick = function () { S.sel = node.getAttribute('data-code'); renderSelect(); };
     });
+    var hint = el('pool-count-hint');
+    if (hint) hint.innerHTML = '本局可交易 <b>' + S.pool.length + '</b> 只（含 ' + etfN + ' 只ETF · 池：' + poolLabel(curSrc) + (curSrc.kind === 'uni' ? ' · 同行业≤2' : '') + '）';
 
     // 4 面板
     if (!selCharts.length) {
@@ -444,6 +522,7 @@
         selCharts.push(new ChartEng.KChart(cv, { subs: i === 0 ? ['vol', 'macd'] : ['vol'] }));
       }
     }
+    syncPoolUI();
     drawSelPanels();
   }
 
@@ -467,6 +546,128 @@
       selCharts[i].opts.title = ix.name;
       selCharts[i].opts.baseIdx = HIDE ? ii : null;   // 指数序列按自身日期定位
       selCharts[i].setData(ix, ii);
+    }
+  }
+
+  // ---------- 池来源工具栏 / 自定义池 ----------
+  function poolKey(src) { return (src.kind || 'uni') + ':' + (src.id || ''); }
+  function poolFromKey(key) {
+    var p = String(key || 'uni:').split(':');
+    return { kind: p[0] || 'uni', id: p[1] || '' };
+  }
+  function fillPoolOptions() {
+    var node = el('pool-src');
+    if (!node) return;
+    var total = Object.keys(KL.stocks).length;
+    var h = '<option value="uni:">全市场随机（' + total + ' 只）</option>';
+    var b = PL.builtin || [];
+    if (b.length) {
+      h += '<optgroup label="内置池">';
+      for (var i = 0; i < b.length; i++) h += '<option value="builtin:' + b[i].id + '">' + b[i].name + '（' + b[i].codes.length + '）</option>';
+      h += '</optgroup>';
+    }
+    var mine = listMinePools();
+    if (mine.length) {
+      h += '<optgroup label="我的池">';
+      for (var j = 0; j < mine.length; j++) h += '<option value="mine:' + mine[j].id + '">' + mine[j].name + '（' + mine[j].codes.length + '）</option>';
+      h += '</optgroup>';
+    }
+    node.innerHTML = h;
+  }
+  function syncPoolUI() {
+    var node = el('pool-src');
+    if (!node) return;
+    fillPoolOptions();
+    node.value = poolKey(curSrc);
+    var dd = el('pool-desc'), del = el('btn-delpool');
+    var size = candsSize(curSrc), total = Object.keys(KL.stocks).length;
+    if (dd) {
+      if (curSrc.kind === 'uni') dd.innerHTML = '全市场 ' + total + ' 只中随机抽取，分类配比（妖/白/蓝/周期/ST/ETF），同行业≤2 分散';
+      else if (curSrc.kind === 'builtin') {
+        var bd = '';
+        for (var i = 0; i < (PL.builtin || []).length; i++) if (PL.builtin[i].id === curSrc.id) bd = PL.builtin[i].desc;
+        dd.innerHTML = bd + (size < 18 ? '　<span style="color:#f0b90b">仅 ' + size + ' 只，开局抽全部</span>' : '');
+      } else {
+        var md = '';
+        var mine = listMinePools();
+        for (var j = 0; j < mine.length; j++) if (mine[j].id === curSrc.id) md = mine[j].name;
+        dd.innerHTML = '我的自定义池：' + md + '（有效 ' + size + ' 只）' + (size < 10 ? '　<span style="color:#ff7b72">不足10只，无法开局</span>' : '') + (size < 18 && size >= 10 ? '　<span style="color:#f0b90b">不足18只，开局抽全部</span>' : '');
+      }
+    }
+    if (del) del.style.display = curSrc.kind === 'mine' ? '' : 'none';
+  }
+  function openNewPoolModal() {
+    el('modal-newpool').style.display = 'flex';
+    el('np-status').className = '';
+    el('np-status').textContent = '';
+    el('np-name').value = '';
+    el('np-codes').value = '';
+    NP_MODAL_OPEN = true;
+    setTimeout(function () { el('np-name').focus(); }, 50);
+  }
+  function closeNewPoolModal() { el('modal-newpool').style.display = 'none'; NP_MODAL_OPEN = false; }
+  function saveNewPool() {
+    var name = (el('np-name').value || '').trim();
+    var raw = el('np-codes').value;
+    var codes = raw.match(/[0-9]{6}/g) || [];
+    var seen = {}, valid = [], bad = 0;
+    codes.forEach(function (c) {
+      if (seen[c]) return;
+      seen[c] = 1;
+      if (KL.stocks[c]) valid.push(c); else bad++;
+    });
+    var st = el('np-status');
+    if (valid.length < 10) {
+      st.className = 'bad';
+      st.textContent = '有效代码仅 ' + valid.length + ' 只（需 ≥10，无效 ' + bad + ' 个）。请补充或修正。';
+      return;
+    }
+    var mine = listMinePools();
+    var id = 'm' + Date.now().toString(36);
+    var uname = name || ('我的池' + (mine.length + 1));
+    mine.push({ id: id, name: uname, codes: valid, ts: Date.now() });
+    saveMinePools(mine);
+    closeNewPoolModal();
+    toast('自定义池「' + uname + '」已保存（' + valid.length + ' 只），开始抽取…');
+    applyPoolChange({ kind: 'mine', id: id });
+  }
+  // 按池抽取：override 提供池源（新建/删除后直接指定）；下拉框 onchange 传 null
+  async function applyPoolChange(override) {
+    var sel = el('pool-src');
+    var src = override || (sel ? poolFromKey(sel.value) : curSrc);
+    curSrc = src;
+    var cands = resolveCands(src);
+    if (!cands.length) { syncPoolUI(); toast('该池暂无有效标的'); return; }
+    busy(true, '正在按池抽取', '池来源：<b>' + poolLabel(src) + '</b>（候选 ' + cands.length + ' 只），正在抽取 ≤18 只并获取行情…');
+    if (cands.length < 10) { busy(false); toast('该池有效标的不足 10 只，无法开局'); syncPoolUI(); return; }
+    var startIdx = S ? S.startIdx : randStart();
+    var pool = samplePool(cands, []);
+    if (pool.length < 10) { busy(false); toast('该池可抽取标的不足 10 只'); syncPoolUI(); return; }
+    var r = await ensureData(pool, startIdx, true, onProg, cands);
+    if (r.bad && r.bad.length) {
+      retryFn = applyPoolChange;
+      return busyErr('部分标的无法获取行情：' + r.bad.map(function (b) { return b.name; }).join('、') + '。可切换池来源或点此重试。');
+    }
+    busy(false);
+    S.pool = r.pool;
+    S.sel = r.pool[0].code;
+    S.map = {};
+    S.pool.forEach(function (p) { S.map[p.code] = buildMap(KL.stocks[p.code]); });
+    renderSelect();
+  }
+  function delCurrentMinePool() {
+    if (curSrc.kind !== 'mine') return;
+    var mine = listMinePools();
+    for (var i = 0; i < mine.length; i++) {
+      if (mine[i].id === curSrc.id) {
+        var nm = mine[i].name;
+        mine.splice(i, 1);
+        saveMinePools(mine);
+        toast('已删除自定义池「' + nm + '」，回到全市场随机');
+        syncPoolUI();
+        applyPoolChange({ kind: 'uni', id: '' });
+        return;
+      }
     }
   }
 
@@ -499,18 +700,44 @@
   }
 
   // ---------- 进入游戏 ----------
+  var orientBound = false, swipeBound = false;
+  function bindChartSwipe() {
+    var cv = el('main-chart');
+    if (!cv || swipeBound) return;
+    swipeBound = true;
+    var x0 = 0, y0 = 0;
+    cv.addEventListener('touchstart', function (e) {
+      if (e.touches.length === 1) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }
+    }, { passive: true });
+    cv.addEventListener('touchend', function (e) {
+      var tc = e.changedTouches && e.changedTouches[0];
+      if (!tc) return;
+      var dx = tc.clientX - x0, dy = tc.clientY - y0;
+      if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+      if (!S || !S.pool.length) return;
+      var i = -1;
+      S.pool.forEach(function (p, k) { if (p.code === S.sel) i = k; });
+      var ni = i < 0 ? 0 : (dx < 0 ? Math.min(S.pool.length - 1, i + 1) : Math.max(0, i - 1));
+      if (ni !== i) selectStock(S.pool[ni].code);
+    }, { passive: true });
+  }
   function startGame() {
     el('screen-select').style.display = 'none';
     el('screen-game').style.display = 'flex';
     if (!mainChart) {
-      mainChart = new ChartEng.KChart(el('main-chart'), { subs: ['vol', 'macd', 'kdj'] });
+      mainChart = new ChartEng.KChart(el('main-chart'), { subs: ['vol', 'macd', 'kdj'], resetBars: defaultBars() });
       chipChart = new ChartEng.ChipChart(el('chip-chart'));
-      miniChart = new ChartEng.KChart(el('mini-chart'), { subs: ['vol'], showMa: true, showBoll: false });
+      miniChart = new ChartEng.KChart(el('mini-chart'), { subs: ['vol'], showMa: true, showBoll: false, resetBars: 100 });
     }
     refreshSubBar();
     fillSelect(el('mini-sel'), miniSel);
     el('mini-sel').onchange = function () { miniSel = this.value; renderGame(); };
     fillMultiAdds();
+    if (!orientBound) {
+      orientBound = true;
+      window.addEventListener('orientationchange', function () { setTimeout(layout, 260); });
+    }
+    bindChartSwipe();
     window.addEventListener('resize', layout);
     layout();
     renderGame();
@@ -523,6 +750,13 @@
     var wrap = el('chart-wrap');
     var wrapW = wrap.clientWidth, ch = wrap.clientHeight;
     if (wrapW <= 0 || ch <= 0) return;
+    // 横竖屏切换时同步默认K线条数（手机 50 / 桌面 100）
+    var want = defaultBars();
+    if (mainChart && mainChart.resetBars !== want) {
+      mainChart.resetBars = want;
+      mainChart.viewBars = want;
+      mainChart._fireView && mainChart._fireView();
+    }
     var gap = 6, padX = 20;
     var chipW = chipOn ? Math.min(226, Math.max(150, Math.round(wrapW * 0.28))) : 0;
     var cw = Math.max(160, wrapW - chipW - gap - padX);
@@ -532,7 +766,7 @@
     if (chipOn) chipChart.resize(chipW, chCap);
     var mw = el('mini-wrap');
     // 上证指数栏与主图个股 K 线同宽、左缘对齐（两者 padL/padR 一致），K 线横向位置完全对齐
-    miniChart.resize(cw, Math.max(60, mw.clientHeight - 30));
+    if (mw && mw.style.display !== 'none' && miniChart) miniChart.resize(cw, Math.max(60, mw.clientHeight - 30));
     if (S) { if (multiOn) renderMulti(); else renderGame(); }
   }
 
@@ -958,11 +1192,12 @@
     // 1) 清仓全部持仓：过 T+1 的按现价卖；当日买入的按下一交易日开盘价卖
     S.positions.slice().forEach(closePosForRepool);
     S.positions = [];
-    // 2) 从全市场重新抽池（排除本局旧标的），联网拉数
-    busy(true, '正在更换股票池', '正在重新随机抽取 18 只并联网获取行情（约 5~15 秒）…');
-    var excl = S.pool.map(function (p) { return p.code; });
-    var pool = pickPoolFromUni(excl);
-    ensureData(pool, S.startIdx, true, onProg).then(function (r) {
+    // 2) 从当前池来源重抽（池源候选 ≥36 只才排除本局旧标的，小池允许重复，保证可抽足）
+    busy(true, '正在更换股票池', '正在从池来源 <b>' + poolLabel(curSrc) + '</b> 重新抽取标的并获取行情（命中本地缓存将秒开）…');
+    var cands = resolveCands(curSrc);
+    var excl = cands.length >= 36 ? S.pool.map(function (p) { return p.code; }) : [];
+    var pool = samplePool(cands, excl);
+    ensureData(pool, S.startIdx, true, onProg, cands).then(function (r) {
       if (r.bad && r.bad.length) {
         busy(false);
         S.repoolUsed = false;   // 失败回滚，允许再次尝试
@@ -1272,6 +1507,14 @@
     el('modal-repool-cancel').onclick = closeRepoolModal;
     el('modal-repool-ok').onclick = doRepool;
     el('modal-repool').addEventListener('click', function (e) { if (e.target === this) closeRepoolModal(); });
+    // 池来源工具栏 / 自定义池（M3）
+    var ps = el('pool-src');
+    if (ps) ps.onchange = function () { applyPoolChange(null); };
+    var bnp = el('btn-newpool'); if (bnp) bnp.onclick = openNewPoolModal;
+    var bdp = el('btn-delpool'); if (bdp) bdp.onclick = delCurrentMinePool;
+    el('modal-newpool').addEventListener('click', function (e) { if (e.target === this) closeNewPoolModal(); });
+    el('np-cancel').onclick = closeNewPoolModal;
+    el('np-ok').onclick = saveNewPool;
     el('multi-add-ix').onchange = function () { if (this.value) { addMulti('index', this.value); this.value = ''; } };
     el('multi-add-st').onchange = function () { if (this.value) { addMulti('stock', null, this.value); this.value = ''; } };
     el('modal-settle').addEventListener('click', function (e) { if (e.target === this) closeSettleModal(); });
@@ -1297,6 +1540,8 @@
       if (el('screen-game').style.display === 'none') return;
       if (el('modal-settle').style.display !== 'none') return;
       if (el('modal-repool').style.display !== 'none') return;
+      if (el('modal-newpool').style.display !== 'none') return;
+      if (NP_MODAL_OPEN) return;
       if (multiOn) return;
       if (e.key === 'ArrowRight') nextDay(1);
       if (e.key === 'ArrowDown') nextDay(5);
@@ -1479,6 +1724,20 @@
   }
 
   // ---------- 启动 ----------
+  global.__DBG = function () {
+    var probe = null;
+    try {
+      var c = resolveCands(curSrc);
+      var catCnt = {};
+      c.forEach(function (o) { catCnt[o.cat] = (catCnt[o.cat] || 0) + 1; });
+      var s0 = samplePool(c, []);
+      var s1 = samplePool(c, []);
+      probe = { candN: c.length, catCnt: catCnt, s0: s0.length, s1: s1.length, first: s0[0] ? s0[0].code : null };
+    } catch (e) { probe = { err: String(e).slice(0, 300) }; }
+    return { ver: GAME_VERSION, S: S ? { pool: S.pool.length, day: S.day, sel: S.sel } : null,
+      mainBars: mainChart ? mainChart.viewBars : null, narrow: isNarrow(),
+      stats: OL.stats, curSrc: curSrc, probe: probe };
+  };
   global.GameApp = {
     boot: function () {
       if (!IX || !UNI.stocks.length) {

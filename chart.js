@@ -243,7 +243,8 @@
     this.data = null;
     this.endIdx = 0;
     this.maxIdx = 0;       // 可见上界（防未来函数）：只渲染 <= 当前游戏日的数据
-    this.viewBars = 120;
+    this.resetBars = this.opts.resetBars || 120;   // 双击/复位时的默认条数（手机版 50，桌面 100）
+    this.viewBars = this.resetBars;
     this.cross = null;      // {x, y}
     this.hoverIdx = -1;
     this.padL = 8; this.padR = 62; this.padT = 18; this.padB = 20;
@@ -267,7 +268,26 @@
       self.viewBars = Math.max(10, Math.min(500, Math.round(self.viewBars * (e.deltaY > 0 ? 1.12 : 0.89))));
       self._fireView(); self.draw();
     }, { passive: false });
-    this.cv.addEventListener('dblclick', function () { self.viewBars = 120; self._fireView(); self.draw(); });
+    this.cv.addEventListener('dblclick', function () { self.viewBars = self.resetBars; self._fireView(); self.draw(); });
+    // 触屏：双指捏合缩放等效滚轮；单指拖动不拦截（页面滚动）
+    var tPinch = null;
+    this.cv.addEventListener('touchstart', function (e) {
+      if (e.touches.length === 2) {
+        tPinch = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      }
+    }, { passive: true });
+    this.cv.addEventListener('touchmove', function (e) {
+      if (e.touches.length === 2 && tPinch) {
+        var d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        if (Math.abs(d - tPinch) > 14) {
+          e.preventDefault();
+          self.viewBars = Math.max(10, Math.min(500, Math.round(self.viewBars * (d > tPinch ? 0.89 : 1.12))));
+          self._fireView(); self.draw();
+          tPinch = d;
+        }
+      }
+    }, { passive: false });
+    this.cv.addEventListener('touchend', function () { tPinch = null; }, { passive: true });
   };
 
   KChart.prototype._plotW = function () { return (this.cssW != null ? this.cssW : this.cv.width / (window.devicePixelRatio || 1)) - this.padL - this.padR; };
