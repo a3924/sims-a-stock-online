@@ -69,7 +69,7 @@
   // 游戏中隐藏真实日期（只显示相对交易日 T+n，T0 = 开局日，其后 T+1/T+2… 随游戏推进递增），真实区间仅在结算页"显示真实日期"揭晓。
   var HIDE = true;
   var GAME_TITLE = '我的模拟人生 · A股版';   // 游戏名（多处复用）
-  var GAME_VERSION = 'v20260904.r33';   // r33：手机「多图对比」保持 1+1+1+1 纵排（维持用户原设定版式）。买卖栏此前"挡住图"的真因是 #multi-panel 继承 flex:1 被 .game-body 滚动容器压缩、超高卡片溢出容器底盖住流式买卖栏；现多图时解除 col-mid/#multi-panel/#multi-grid 高度压缩（flex:none、grid 单列 auto 行高）、页面随图自然变长，#trade-panel(order5 static) 落到 4 张图之后的最下方；桌面 2×2+右下浮动不变。注：本版本曾以 2×2+折叠自选池实现过一次（未发布），按用户要求已撤销；r32：种子识别自动化——灯泡/结算复制出的「整段分享文案」（标题+当前收益+同期沪深300+来挑战我）可直接粘回「用种子开局」，解析改为全文扫描候选+逐个位校验，自动捞出真种子；r31：种子分享细化（选股屏「本局种子」移至「开始你的交易人生」下方、不写种子串只给按钮+提示；游戏中💡与结算分享文案剔除评级、含当前收益/我的成绩与同期沪深300；夏普评级改 S>3/A>2/B>1/C>0；结算屏种子区移到复盘/再来一局下方；历史战绩每条加「🎯种子」一键复制本局种子；B/C 随机池/自定义大池个别标的一时拉不到不再整局卡死——55s 单只看门狗+残余剔除放行保住开局）；r30：挑战种子——每局都编码成一颗种子（股票池3–20只+起始日，文本开头 #我的人生模拟器·A股版、后接 base62 大小写+数字）；开始交易屏亮出「本局种子」可复制、游戏中💡灯泡面板加「分享本局种子」、结算页写出一整段分享文案；「用种子开局」= 同一批股票+同一起点，成绩可横向比拼，本机按种子存最佳成绩；换股票池或局内增删自选后本局作废、不再计入该种子最佳；r29：开局玩法弹窗/选股屏/结算确认文案整体改版（弹窗导语与A精选池/B全市场随机/C自定义池/D ETF+LOF卡描述重写、C卡「选择 3–20 只 → 全部开局」、开局数量区带默认✓、小提示重写；选股屏副标「全市场实时行情·模拟选股」+引导语「选择你的股票池，开始这一局模拟人生。」+主按钮「开始你的交易人生」；结算确认弹窗正文细化）；r28：打赏和建议弹窗文案更新（感谢你愿意玩到这里 / 数据整理 / 喝杯奶茶 / 认真看反馈 / 感谢使用与支持）；r27：副图标题指标值跟随鼠标十字光标联动（同花顺式——悬停哪根K线即显示该根数值，移开恢复最新）；r26：结算报告移除 0AMV 活跃市值行，本局区间与同期沪深300改为两行排版（基准涨跌上红/绿色）；r25：自选/自定义池彻底放开3只开局(C勾选/开局/剔除兜底全链路)+游戏内自选池「✎增删本池股票」+打赏二维码120%去外框；r24：结算后「打赏和建议」（感谢文案+邮箱 gzy000@foxmail.com+赞赏二维码）；r23：自定义池下限改为3只且不限上限 + 局内「编辑此池」增删（下一局生效）；r22：MA数值栏2+2修复+手机指标栏提示与标题同行可点折叠+量涨跌幅浅红/蓝青+价格轴黄色当前价标签；r21：指标设置改版（均线/布林带入列主图叠加+分图模式+拥挤度+信息框量涨跌幅+主图左下MA数值栏+重置全部参数）；r20：长按/右键副图指标改参数；r19：复权守卫+副图英文；r18：结算滚动+分类排序+D模式+💡+B/S标注+历史+复盘
+  var GAME_VERSION = 'v20260904.r35';   // r35：开局前历史上下文——桌面默认给足 180 根K线再看盘（不足按可用；近期上市新股除外并在首根标「上市」）；K线涨跌停视觉——涨停黄色描边渐变贴蜡烛上端（上2/5 处渐隐至无）、跌停紫色描边渐变贴蜡烛下端（下2/5 处渐隐至无），按收盘=round(前收×(1±限幅)) 精确判定（主板10%/ST5%/创业科创20%/北交所30%）。r34（TradingView 风格副本）：仅调整 颜色/字体/边框/按钮/明暗主题——夜间默认 #0F0F0F、面板 #131313，白天可切换并记忆（#FFFFFF/#F8F8F8）；红涨绿跌 A股口径：涨红 #E5484D、跌绿（暗 #089981 / 亮 #22AB94），买入红、卖出绿、危险红专用；UI Inter + 数字 Roboto Mono 等宽；分类标签（白马/蓝筹/妖股/周期/ETF）彩字、ST 保留红；指标按钮选中才蓝、均线低饱和、网格变淡、面板去卡片化。布局/功能/文案一律未动。原 r33：手机「多图对比」保持 1+1+1+1 纵排（维持用户原设定版式）。买卖栏此前"挡住图"的真因是 #multi-panel 继承 flex:1 被 .game-body 滚动容器压缩、超高卡片溢出容器底盖住流式买卖栏；现多图时解除 col-mid/#multi-panel/#multi-grid 高度压缩（flex:none、grid 单列 auto 行高）、页面随图自然变长，#trade-panel(order5 static) 落到 4 张图之后的最下方；桌面 2×2+右下浮动不变。注：本版本曾以 2×2+折叠自选池实现过一次（未发布），按用户要求已撤销；r32：种子识别自动化——灯泡/结算复制出的「整段分享文案」（标题+当前收益+同期沪深300+来挑战我）可直接粘回「用种子开局」，解析改为全文扫描候选+逐个位校验，自动捞出真种子；r31：种子分享细化（选股屏「本局种子」移至「开始你的交易人生」下方、不写种子串只给按钮+提示；游戏中💡与结算分享文案剔除评级、含当前收益/我的成绩与同期沪深300；夏普评级改 S>3/A>2/B>1/C>0；结算屏种子区移到复盘/再来一局下方；历史战绩每条加「🎯种子」一键复制本局种子；B/C 随机池/自定义大池个别标的一时拉不到不再整局卡死——55s 单只看门狗+残余剔除放行保住开局）；r30：挑战种子——每局都编码成一颗种子（股票池3–20只+起始日，文本开头 #我的人生模拟器·A股版、后接 base62 大小写+数字）；开始交易屏亮出「本局种子」可复制、游戏中💡灯泡面板加「分享本局种子」、结算页写出一整段分享文案；「用种子开局」= 同一批股票+同一起点，成绩可横向比拼，本机按种子存最佳成绩；换股票池或局内增删自选后本局作废、不再计入该种子最佳；r29：开局玩法弹窗/选股屏/结算确认文案整体改版（弹窗导语与A精选池/B全市场随机/C自定义池/D ETF+LOF卡描述重写、C卡「选择 3–20 只 → 全部开局」、开局数量区带默认✓、小提示重写；选股屏副标「全市场实时行情·模拟选股」+引导语「选择你的股票池，开始这一局模拟人生。」+主按钮「开始你的交易人生」；结算确认弹窗正文细化）；r28：打赏和建议弹窗文案更新（感谢你愿意玩到这里 / 数据整理 / 喝杯奶茶 / 认真看反馈 / 感谢使用与支持）；r27：副图标题指标值跟随鼠标十字光标联动（同花顺式——悬停哪根K线即显示该根数值，移开恢复最新）；r26：结算报告移除 0AMV 活跃市值行，本局区间与同期沪深300改为两行排版（基准涨跌上红/绿色）；r25：自选/自定义池彻底放开3只开局(C勾选/开局/剔除兜底全链路)+游戏内自选池「✎增删本池股票」+打赏二维码120%去外框；r24：结算后「打赏和建议」（感谢文案+邮箱 gzy000@foxmail.com+赞赏二维码）；r23：自定义池下限改为3只且不限上限 + 局内「编辑此池」增删（下一局生效）；r22：MA数值栏2+2修复+手机指标栏提示与标题同行可点折叠+量涨跌幅浅红/蓝青+价格轴黄色当前价标签；r21：指标设置改版（均线/布林带入列主图叠加+分图模式+拥挤度+信息框量涨跌幅+主图左下MA数值栏+重置全部参数）；r20：长按/右键副图指标改参数；r19：复权守卫+副图英文；r18：结算滚动+分类排序+D模式+💡+B/S标注+历史+复盘
   // 用户双击版本号自定义的开局起点（DAYS 索引）；null=随机。持久化在 localStorage。
   var CUR_START = (function () {
     var v = localStorage.getItem('sims.customStart');
@@ -122,9 +122,62 @@
   function cls(v) { return v > 0 ? 'up' : (v < 0 ? 'dn' : ''); }
   function fmtDate(d) { var s = String(d); return s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6, 8); }
   function el(id) { return document.getElementById(id); }
-  // 手机版判定：窄屏（<881px）→ 竖屏单列、K线默认 35 根（太密看不清）；桌面默认 100 根
+  // ---------- r34 主题：夜间(默认) / 白天，记忆选择；联动画布配色 ----------
+  var THEME_KEY = 'sims.theme';
+  function currentTheme() {
+    try { return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; } catch (e) { return 'dark'; }
+  }
+  function refreshThemeIcons() {
+    var light = currentTheme() === 'light';
+    // 显示“当前模式”，点击即切换（title 说明去向）
+    var icon = light ? '☀' : '☾';
+    var tx = light ? '白天模式' : '夜间模式';
+    var title = light ? '点击切换到夜间模式' : '点击切换到白天模式';
+    ['theme-toggle', 'mode-theme', 'tip-theme'].forEach(function (id) {
+      var b = el(id);
+      if (b) {
+        b.innerHTML = '<span class="t-ic">' + icon + '</span><span class="t-tx">' + tx + '</span>';
+        b.title = title;
+      }
+    });
+  }
+  // 主题切换后重绘全部画布（K线/筹码/大盘/多图/选股页预览）
+  function redrawTheme() {
+    try {
+      (selCharts || []).forEach(function (c) { if (c) c.draw(); });
+      if (selChip) selChip.draw();
+      if (mainChart) mainChart.draw();
+      if (chipChart) chipChart.draw();
+      if (miniChart) miniChart.draw();
+      (multiItems || []).forEach(function (it) { if (it && it.chart) it.chart.draw(); });
+    } catch (e) {}
+  }
+  function applyTheme() {
+    var t = currentTheme();
+    var r = document.documentElement;
+    r.setAttribute('data-theme', t);
+    var mt = document.querySelector('meta[name="theme-color"]');
+    if (mt) mt.setAttribute('content', t === 'light' ? '#FFFFFF' : '#0F0F0F');
+    try { if (global.ChartEng && global.ChartEng.setTheme) global.ChartEng.setTheme(t); } catch (e) {}
+    refreshThemeIcons();
+    redrawTheme();
+  }
+  function toggleTheme() {
+    try { localStorage.setItem(THEME_KEY, currentTheme() === 'light' ? 'dark' : 'light'); } catch (e) {}
+    applyTheme();
+  }
+  // 手机版判定：窄屏（<881px）→ 竖屏单列、K线默认 35 根（太密看不清）；桌面默认 180 根
   function isNarrow() { return (window.innerWidth || document.documentElement.clientWidth) <= 880; }
-  function defaultBars() { return isNarrow() ? 35 : 100; }
+  function defaultBars() { return isNarrow() ? 35 : 180; }   // r35 开局前历史上下文：桌面默认 180 根（不足 180 自动显示全部）
+  // r35 板块涨跌停限幅：ST 5% / 创业板·科创板 20% / 北交所 30% / 其余主板·基金 10%
+  function limitRatioOf(code, st) {
+    var nm = String((st && st.name) || '').toUpperCase();
+    if (nm.indexOf('ST') >= 0) return 0.05;
+    var c = String(code);
+    if (/^(300|301|688|689)/.test(c)) return 0.2;
+    if (/^(43|83|87|92|4)/.test(c)) return 0.3;
+    return 0.1;
+  }
 
   // ---------- 临时存档（cookie 为主 + localStorage 兜底） ----------
   // 说明：cookie 写紧凑版（受 ~4KB 单条限制，流水过多时自动截断）；localStorage 写完整版。
@@ -1064,8 +1117,8 @@
         var bd = '';
         for (var i = 0; i < (PL.builtin || []).length; i++) if (PL.builtin[i].id === curSrc.id) bd = PL.builtin[i].desc;
         dd.innerHTML = bd + (size < tgt
-          ? '　<span style="color:#f0b90b">仅 ' + size + ' 只，开局抽全部</span>'
-          : '　<span style="color:#8b949e">当前 ' + (isEasy() ? '简单 · 抽 8 只' : '复杂 · 抽 18 只') + '</span>');
+          ? '　<span style="color:var(--warn)">仅 ' + size + ' 只，开局抽全部</span>'
+          : '　<span style="color:var(--dim)">当前 ' + (isEasy() ? '简单 · 抽 8 只' : '复杂 · 抽 18 只') + '</span>');
       } else if (curSrc.kind === 'seed') {   // r30
         dd.innerHTML = '🎯 挑战种子局：种子里写死的 ' + size + ' 只标的全部纳入，牌面与起点固定不变（换池按钮不可用，结算成绩按种子记录最佳）';
       } else {
@@ -1074,10 +1127,10 @@
         for (var j = 0; j < mine.length; j++) if (mine[j].id === curSrc.id) md = mine[j].name;
         var tail;
         if (size < mn4) tail = '　<span style="color:#ff7b72">不足' + mn4 + '只，无法开局</span>';
-        else if (size <= cap) tail = '　<span style="color:#f0b90b">≤' + cap + ' 只全部纳入</span>';
-        else tail = '　<span style="color:#f0b90b">超过 ' + cap + ' 只，抽 ≤' + tgt + '</span>';
+        else if (size <= cap) tail = '　<span style="color:var(--warn)">≤' + cap + ' 只全部纳入</span>';
+        else tail = '　<span style="color:var(--warn)">超过 ' + cap + ' 只，抽 ≤' + tgt + '</span>';
         dd.innerHTML = '我的自定义池：' + md + '（有效 ' + size + ' 只）' + tail +
-          '　<span style="color:#8b949e">当前 ' + (isEasy() ? '简单模式' : '复杂模式') + '</span>';
+          '　<span style="color:var(--dim)">当前 ' + (isEasy() ? '简单模式' : '复杂模式') + '</span>';
       }
     }
     if (del) del.style.display = curSrc.kind === 'mine' ? '' : 'none';
@@ -1834,7 +1887,14 @@
     var mi = i != null ? i : lastIdxBefore(S.sel, date);   // 当前游戏日（个股序列）下标
     mainChart.opts.title = st.name;
     // 标签锚点 = 开局日（T0）：当前游戏日显示 T+已玩天数并随推进递增，窗口右缘仍由 setData 锁在“当前日”防未来
-    mainChart.opts.baseIdx = HIDE ? startAnchorFor(S.sel, st, DAYS[S.startIdx]) : null;
+    var a0 = startAnchorFor(S.sel, st, DAYS[S.startIdx]);
+    mainChart.opts.baseIdx = HIDE ? a0 : null;
+    // r35 近期上市标注：个股数据起点晚于全局日历起点（真上市日，非被取数窗口截断），
+    // 且开局前历史不足 180 根 → 引擎在首根 K 线上画「上市」（老股/指数不标）
+    var ipoShort = !!st && st.d && st.d.length > 0 && a0 >= 0 && a0 < 180 && st.d[0] > DAYS[0];
+    mainChart.opts.limit = limitRatioOf(S.sel, st);   // 涨停黄/跌停紫描边判定限幅
+    mainChart.opts.firstIdx = ipoShort ? 0 : null;
+    mainChart.opts.ipo = ipoShort;
     mainChart.opts.markers = markersOf(S.sel);   // K线上标注玩家 B/S 买卖点
     mainChart.setData(st, mi);
     chipChart.hideDate = HIDE;
@@ -2578,6 +2638,10 @@
 
   // ---------- 绑定 ----------
   function bind() {
+    // r34：主题切换（选股页 / 玩法弹窗 / 💡 灯泡内）
+    var tg1 = el('theme-toggle'); if (tg1) tg1.onclick = toggleTheme;
+    var tg2 = el('mode-theme'); if (tg2) tg2.onclick = toggleTheme;
+    var tg3 = el('tip-theme'); if (tg3) tg3.onclick = toggleTheme;
     el('btn-start').onclick = function () { if (!S) { openModeModal(); return; } clearSave(); startGame(); };   // 开局：无预览先选玩法；有预览直接开始
     el('btn-resume').onclick = beginResume;                              // 继续上次存档：先联网补全行情再恢复
     el('btn-clear').onclick = function () { clearSave(); toast('已清除存档'); };
@@ -3343,9 +3407,10 @@
   global.GameApp = {
     boot: function () {
       if (!IX || !UNI.stocks.length) {
-        document.body.innerHTML = '<p style="color:#f66;padding:40px">基础数据包未加载（data_index / data_universe）</p>';
+        document.body.innerHTML = '<p style="color:var(--danger);padding:40px">基础数据包未加载（data_index / data_universe）</p>';
         return;
       }
+      applyTheme();   // r34：按记忆值设定主题（首帧前 index 头部脚本已设 data-theme，这里再统一画布配色与图标）
       bind();
       buildPanelSelects();
       var vb = el('ver-badge'); if (vb) vb.textContent = GAME_VERSION;

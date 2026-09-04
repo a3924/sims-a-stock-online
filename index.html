@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<script>
+/* r34 主题：默认夜间(#0F0F0F)，记忆用户选择；首帧前设定避免闪白/闪暗 */
+(function () {
+  var t = 'dark';
+  try { t = localStorage.getItem('sims.theme') || 'dark'; } catch (e) {}
+  document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+})();
+</script>
 <meta charset="utf-8">
 <title>我的模拟人生 · A股版</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -16,7 +24,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);
-  font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",ui-monospace,Consolas,monospace;
+  font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",var(--mono);
   overflow:hidden;height:100vh}
 button{background:var(--panel2);color:var(--text);border:1px solid var(--line);
   border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;font-family:inherit}
@@ -46,7 +54,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .pool-item.on{background:#1f6feb22;border-left:3px solid var(--acc)}
 .pi-name{font-weight:600;font-size:13px}
 .pi-code{color:var(--dim);font-size:11px}
-.pi-px{font-family:ui-monospace,Consolas,monospace}
+.pi-px{font-family:var(--mono)}
 .tag{font-size:10px;padding:1px 5px;border-radius:3px;margin-left:5px;font-weight:400}
 .t-white{background:#1f6feb33;color:#79c0ff} .t-blue{background:#8957e533;color:#d2a8ff}
 .t-monster{background:#bb800933;color:#f0b90b} .t-st{background:#da363333;color:#ff7b72}
@@ -76,7 +84,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
   background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
 .hud{display:flex;flex-direction:column;line-height:1.25}
 .hud .lb{color:var(--dim);font-size:11px}
-.hud .vl{font-size:14px;font-weight:600;font-family:ui-monospace,Consolas,monospace}
+.hud .vl{font-size:14px;font-weight:600;font-family:var(--mono)}
 .hud .vl.big{font-size:16px}
 .spacer{flex:1}
 .game-body{display:flex;flex:1;min-height:0}
@@ -92,7 +100,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .pl-tr:hover{background:var(--panel2)}
 .pl-tr .tn{width:74px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pl-tr .ti{color:var(--dim);white-space:nowrap}
-.pl-tr .tp{margin-left:auto;font-family:ui-monospace,Consolas,monospace;white-space:nowrap}
+.pl-tr .tp{margin-left:auto;font-family:var(--mono);white-space:nowrap}
 .st-item{padding:6px 10px;border-bottom:1px solid var(--line);cursor:pointer;
   display:flex;justify-content:space-between;align-items:center;gap:4px;position:relative}
 .st-item:hover{background:var(--panel2)}
@@ -102,7 +110,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .si-n .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .si-c{color:var(--dim);font-size:10px;margin-top:1px}
 .si-c i{color:var(--warn);font-style:normal}
-.si-r{text-align:right;font-family:ui-monospace,Consolas,monospace}
+.si-r{text-align:right;font-family:var(--mono)}
 .si-p{font-size:13px}
 .si-g{font-size:11px}
 .si-hold{position:absolute;right:10px;bottom:2px;font-size:10px;color:var(--dim)}
@@ -119,7 +127,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 #mini-hd{display:flex;align-items:center;gap:8px;padding:0 2px 4px}
 #mini-hd .lb{color:var(--dim);font-size:11px}
 #mini-hd select{font-size:11px;padding:1px 6px}
-#mini-val{font-size:11px;font-family:ui-monospace,Consolas,monospace;margin-left:auto;color:var(--dim)}
+#mini-val{font-size:11px;font-family:var(--mono);margin-left:auto;color:var(--dim)}
 #mini-chart{border-radius:6px;background:var(--panel);width:100%;display:block}
 #trade-panel{position:fixed;right:20px;bottom:22px;z-index:80;width:334px;
   border:1px solid var(--line);border-radius:10px;padding:8px 10px 5px;
@@ -132,9 +140,9 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 #trade-panel input{width:58px;padding:3px 5px;font-size:12px}
 .tp-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:nowrap;white-space:nowrap}
 .tp-row .n{color:var(--dim);font-size:11px}
-.tp-row .n b{color:var(--text);font-weight:600;font-family:ui-monospace,Consolas,monospace}
+.tp-row .n b{color:var(--text);font-weight:600;font-family:var(--mono)}
 #tb-name{font-weight:600;font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis}
-#tb-px{font-family:ui-monospace,Consolas,monospace;color:var(--warn);font-weight:600}
+#tb-px{font-family:var(--mono);color:var(--warn);font-weight:600}
 .tp-limit{color:var(--dim);font-size:10px;margin-left:auto;overflow:hidden;text-overflow:ellipsis}
 .tp-frac{gap:4px}
 .tp-frac .grp{display:flex;gap:4px;align-items:center}
@@ -152,8 +160,8 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .pos-item:hover{background:var(--panel2)}
 .po-n{font-size:12px;font-weight:600;display:flex;justify-content:space-between}
 .po-d{color:var(--dim);font-weight:400;font-size:11px}
-.po-p{color:var(--dim);font-size:11px;font-family:ui-monospace,Consolas,monospace}
-.po-pl{font-family:ui-monospace,Consolas,monospace;font-size:12px}
+.po-p{color:var(--dim);font-size:11px;font-family:var(--mono)}
+.po-pl{font-family:var(--mono);font-size:12px}
 .empty{color:var(--dim);padding:14px 10px;font-size:12px}
 
 /* ---------- 结算 ---------- */
@@ -172,7 +180,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .sel-seed{max-width:900px;margin:4px auto 0;padding:6px 12px;background:var(--panel2);
   border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
 .sel-seed .ss-lb{font-size:12px;color:var(--acc);flex:0 0 auto}
-.sel-seed .ss-txt{flex:1 1 220px;min-width:0;font-family:ui-monospace,Consolas,monospace;
+.sel-seed .ss-txt{flex:1 1 220px;min-width:0;font-family:var(--mono);
   font-size:11px;line-height:1.5;color:var(--text);word-break:break-all}
 .sel-seed .ss-hint{font-size:12px;color:var(--dim);flex:0 0 auto}
 .sel-seed button{flex:0 0 auto;min-height:30px;font-size:12px;padding:4px 10px}
@@ -181,8 +189,8 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
   border:1px solid var(--line);border-radius:10px}
 .settle-seed .ss-hd{font-size:13px;color:var(--acc);margin-bottom:8px}
 .settle-seed .ss-best{font-size:12px;color:var(--dim);margin-bottom:8px}
-.settle-seed .ss-best b{font-family:ui-monospace,Consolas,monospace}
-.settle-seed .ss-text{font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:1.7;
+.settle-seed .ss-best b{font-family:var(--mono)}
+.settle-seed .ss-text{font-family:var(--mono);font-size:12px;line-height:1.7;
   white-space:pre-wrap;word-break:break-all;color:var(--text);background:var(--panel);
   border:1px solid var(--line);border-radius:8px;padding:10px 12px;max-height:30vh;overflow-y:auto}
 .settle-seed .ss-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
@@ -211,12 +219,12 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .rank-S{background:#8957e5;color:#fff} .rank-A{background:#238636;color:#fff}
 .rank-B{background:#1f6feb;color:#fff} .rank-C{background:#9e6a03;color:#fff}
 .rank-D{background:#da3633;color:#fff} .rank-\-{background:var(--panel2);color:var(--dim)}
-.st-eq{font-size:26px;font-weight:700;font-family:ui-monospace,Consolas,monospace}
+.st-eq{font-size:26px;font-weight:700;font-family:var(--mono)}
 .st-sub{color:var(--dim);font-size:13px;margin-top:4px}
 .st-table{width:100%;border-collapse:collapse;margin-top:14px}
 .st-table td{padding:7px 8px;border-bottom:1px solid var(--line);font-size:13px}
 .st-table td.k{color:var(--dim);width:150px}
-.st-table td.v{font-family:ui-monospace,Consolas,monospace;font-weight:600}
+.st-table td.v{font-family:var(--mono);font-weight:600}
 .st-table td.note{color:var(--dim);font-size:11px;text-align:right}
 .st-table tr.hl{background:var(--panel2)}
 .st-table tr.hl td.k{color:var(--text);font-weight:600}
@@ -225,18 +233,18 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .tr-row{display:flex;gap:12px;padding:5px 8px;border-bottom:1px solid var(--line);font-size:12px}
 .tr-row span:first-child{width:110px}
 .tr-row span:nth-child(2){width:50px;color:var(--dim)}
-.tr-row span:nth-child(3){font-family:ui-monospace,Consolas,monospace}
-.tr-d{width:130px;color:var(--dim);font-size:10px;font-family:ui-monospace,Consolas,monospace}
+.tr-row span:nth-child(3){font-family:var(--mono)}
+.tr-d{width:130px;color:var(--dim);font-size:10px;font-family:var(--mono)}
 .forced{color:var(--warn);font-size:11px}
 .st-reveal{margin-top:14px;padding:12px 14px;background:var(--panel2);border:1px solid var(--line);
   border-radius:8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:13px}
 .st-reveal .note{color:var(--dim);font-size:11px}
-.st-reveal b{font-family:ui-monospace,Consolas,monospace;color:var(--warn)}
+.st-reveal b{font-family:var(--mono);color:var(--warn)}
 
 #toast{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);
   background:#238636;color:#fff;padding:8px 18px;border-radius:6px;font-size:13px;
   display:none;z-index:99;box-shadow:0 4px 16px #0008}
-.ver{font:11px ui-monospace,Consolas,monospace;color:var(--dim);background:var(--panel2);
+.ver{font:11px var(--mono);color:var(--dim);background:var(--panel2);
   border:1px solid var(--line);border-radius:4px;padding:2px 7px;white-space:nowrap}
 /* ---------- 多图对比（内联） ---------- */
 #multi-panel{flex:1;display:none;flex-direction:column;min-height:0}
@@ -293,7 +301,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 /* ---------- 🎯 挑战种子弹窗（r30） ---------- */
 .seed-box{max-width:460px}
 .seed-ta{width:100%;box-sizing:border-box;margin-top:10px;padding:10px 12px;
-  font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:1.6;
+  font-family:var(--mono);font-size:12px;line-height:1.6;
   color:var(--text);background:var(--panel2);border:1px solid var(--line);
   border-radius:8px;resize:vertical;word-break:break-all}
 .seed-ta:focus{outline:none;border-color:var(--acc)}
@@ -304,7 +312,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .seed-dim{color:var(--dim)}
 .seed-names{margin-top:4px;color:var(--text);font-size:12px;line-height:1.7}
 .seed-score{margin-top:6px;font-size:13px}
-.seed-score b{font-family:ui-monospace,Consolas,monospace}
+.seed-score b{font-family:var(--mono)}
 @media(max-width:640px){
   .seed-box{width:calc(100vw - 24px)}
   .seed-box .modal-btns{flex-wrap:wrap}
@@ -320,12 +328,12 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .hist-head{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;flex-wrap:wrap}
 .hist-head:hover{background:var(--panel)}
 .hist-badge{flex:none;width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;
-  font:800 13px ui-monospace,Consolas,monospace;color:#fff;background:var(--panel)}
+  font:800 13px var(--mono);color:#fff;background:var(--panel)}
 .hist-t{flex:1;min-width:120px;font-size:13px;line-height:1.4}
 .hist-t b{display:block;font-size:14px}
 .hist-t span{color:var(--dim);font-size:11px}
 .hist-ret{flex:none;text-align:right;font-size:12px;line-height:1.5}
-.hist-ret b{display:block;font-family:ui-monospace,Consolas,monospace;font-size:15px}
+.hist-ret b{display:block;font-family:var(--mono);font-size:15px}
 .hist-body{display:none;border-top:1px dashed var(--line);padding:10px 12px;font-size:12px;color:var(--dim);line-height:1.7}
 .hist-item.open .hist-body{display:block}
 .hist-body .kv{display:flex;flex-wrap:wrap;gap:2px 14px;margin-bottom:6px}
@@ -361,7 +369,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
   background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 12px 12px;
   cursor:pointer;transition:border-color .15s,transform .1s,box-shadow .15s}
 .mode-card:hover{border-color:var(--acc);transform:translateY(-1px);box-shadow:0 6px 20px #0006}
-.mode-card .mc-badge{position:absolute;top:-9px;left:12px;font:700 12px ui-monospace,Consolas,monospace;
+.mode-card .mc-badge{position:absolute;top:-9px;left:12px;font:700 12px var(--mono);
   padding:1px 8px;border-radius:10px;color:#fff}
 .mode-card.a .mc-badge{background:#238636}.mode-card.b .mc-badge{background:#1f6feb}.mode-card.c .mc-badge{background:#8957e5}
 .mode-card.d .mc-badge{background:#f0883e}
@@ -371,7 +379,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .mode-card .mc-lead{font-size:12px;font-weight:700;color:var(--text);line-height:1.4}
 .mode-card .mc-d{font-size:11px;color:var(--dim);line-height:1.55;flex:1}
 .mode-card .mc-d b{color:var(--text)}
-.mode-card .mc-cnt{margin-top:4px;font-size:11px;color:var(--acc);font-family:ui-monospace,Consolas,monospace}
+.mode-card .mc-cnt{margin-top:4px;font-size:11px;color:var(--acc);font-family:var(--mono)}
 .mode-card .mc-tags{margin-top:2px;font-size:10px;color:var(--dim)}
 /* 三卡下方：开局数量模式（简单8 / 复杂18，默认复杂） */
 .mm-mode{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-6px 0 16px;
@@ -407,13 +415,13 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .pick-row.on{background:#1f6feb22}
 .pick-row input{margin:0;pointer-events:none;accent-color:#1f6feb}
 .pick-row .pn{font-weight:600;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pick-row .pc{color:var(--dim);font-family:ui-monospace,Consolas,monospace;font-size:11px}
+.pick-row .pc{color:var(--dim);font-family:var(--mono);font-size:11px}
 .pick-row .pi{margin-left:auto;color:var(--dim);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
 .pick-row .tag{font-size:9px;margin-left:0}
 #pk-more{display:none;width:100%;padding:7px;font-size:12px;margin-top:6px}
 .pk-foot{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
 #pick-count{font-size:12px;color:var(--dim)}
-#pick-count b{color:var(--acc);font-family:ui-monospace,Consolas,monospace}
+#pick-count b{color:var(--acc);font-family:var(--mono)}
 .pk-foot .spacer{flex:1}
 .pk-foot .primary:disabled{opacity:.45;cursor:not-allowed}
 .pk-empty{color:var(--dim);padding:22px 10px;text-align:center;font-size:12px}
@@ -576,6 +584,166 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
   #pk-go{flex:1}
 }
 </style>
+<style>
+/* ================= r34 TradingView 主题改版（不改布局/功能/文字/位置，仅颜色·字体·按钮风格） ================= */
+/* 夜间（默认）：近纯黑 #0F0F0F 底，面板 #131313，90% 黑白灰，颜色只表达涨跌与操作 */
+:root{
+  --bg:#0F0F0F;            /* 页面背景 */
+  --panel:#131313;         /* 面板背景 */
+  --panel2:#1B1B1B;        /* 次级面板 / 默认按钮底 */
+  --hover:#1F1F1F;         /* 悬停高亮 */
+  --line:#2A2A2A;          /* 边框 / 分割线 */
+  --divider:rgba(255,255,255,.07); /* 更细的行分隔 */
+  --text:#E0E0E0;          /* 主文字 */
+  --dim:#8A8A8A;           /* 次文字 */
+  --up:#E5484D;            /* 上涨 红（深色底自动提亮，保证可读） */
+  --dn:#089981;            /* 下跌 绿（深色底提亮） */
+  --danger:#E5484D;        /* ST / 危险操作 / 错误 专用红 */
+  --buy:#E5484D;           /* 买入按钮 红（= 涨色） */
+  --sell:#089981;          /* 卖出按钮 绿（= 跌色） */
+  /* 分类标签彩字（只着色字体，不做花哨底色） */
+  --c-w:#7AB8FF; --c-b:#C08AF0; --c-m:#E5B454; --c-c:#63D8A8; --c-e:#F0A45C; --c-st:#FF8585;
+  --acc:#2962FF;           /* 选中 / 主要操作 */
+  --accbg:rgba(41,98,255,.16);
+  --warn:#E0B45A;
+  --btn:#1B1B1B; --btn-hi:#292929; --field:#0F0F0F;
+  --scroll:#3D3D3D;
+  --shadow:0 12px 34px rgba(0,0,0,.55);
+  --mono:'Roboto Mono',ui-monospace,'SF Mono',Consolas,monospace;
+  --ui:'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Segoe UI',-apple-system,sans-serif;
+}
+/* 白天：TradingView 浅色 */
+[data-theme="light"]{
+  --bg:#FFFFFF; --panel:#F8F8F8; --panel2:#F0F0F0; --hover:#ECECEC;
+  --line:#E0E0E0; --divider:rgba(0,0,0,.08);
+  --text:#202020; --dim:#707070;
+  --up:#E5484D; --dn:#22AB94; --danger:#E5484D;
+  --buy:#E5484D; --sell:#22AB94;
+  /* 分类标签彩字（浅色模式加深保证可读） */
+  --c-w:#2B6FD0; --c-b:#7A4FC4; --c-m:#A67C00; --c-c:#0E8F6D; --c-e:#D87A2A; --c-st:#D64550;
+  --acc:#2962FF; --accbg:rgba(41,98,255,.10);
+  --warn:#B8860B;
+  --btn:#F0F0F0; --btn-hi:#E2E2E2; --field:#FFFFFF;
+  --scroll:#C6C9CE;
+  --shadow:0 12px 34px rgba(0,0,0,.16);
+}
+html{color-scheme:dark}
+[data-theme="light"]{color-scheme:light}
+body{background:var(--bg);color:var(--text);font-family:var(--ui)}
+button,input,select,textarea{font-family:inherit}
+
+/* ---- 按钮：统一黑白灰；主操作=蓝；危险操作 hover=红 ---- */
+button{background:var(--btn);border:1px solid var(--line);color:var(--text);transition:background .12s,border-color .12s,color .12s}
+button:hover{background:var(--btn-hi);border-color:#3E3E3E;color:var(--text)}
+[data-theme="light"] button:hover{border-color:#C8C8C8}
+button.on,button.primary,#btn-next{background:var(--acc);border-color:var(--acc);color:#fff !important;font-weight:600}
+button.primary:hover,button.on:hover,#btn-next:hover{background:#4A76FF;border-color:#4A76FF;color:#fff !important}
+[data-theme="light"] button.primary:hover,[data-theme="light"] button.on:hover,[data-theme="light"] #btn-next:hover{background:#2E5BE0;border-color:#2E5BE0;color:#fff !important}
+/* 「清除存档」「结算」默认灰，hover 变红（危险操作红） */
+#btn-clear:hover,#btn-settle:hover{background:rgba(229,72,77,.12);border-color:var(--danger);color:var(--danger)}
+#btn-next{border-radius:6px}
+.mm-chip.on,.pick-chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.mm-chip.on:hover,.pick-chip.on:hover{background:#4A76FF;border-color:#4A76FF;color:#fff}
+.sub-btn{background:var(--btn);border:1px solid var(--line);color:var(--dim)}
+.sub-btn:hover{background:var(--btn-hi);color:var(--text)}
+.sub-btn.on{background:var(--acc);border-color:var(--acc);color:#fff !important}
+#btn-pool-ops{border-color:var(--acc);color:var(--acc);background:transparent}
+#btn-pool-ops:hover{background:var(--acc);color:#fff}
+.hist-seed-btn{color:var(--acc);border-color:var(--line);background:var(--panel)}
+.hist-seed-btn:hover{border-color:var(--acc);color:var(--acc)}
+
+/* ---- 行悬停/选中：中性灰 + 操作蓝 ---- */
+.pool-item:hover,.st-item:hover,.pos-item:hover,.pl-tr:hover,.pick-row:hover,.hist-head:hover{background:var(--hover)}
+.pool-item.on,.st-item.on{background:var(--accbg);border-left:3px solid var(--acc)}
+.pos-item.on{background:var(--accbg);border-left:2px solid var(--acc);padding-left:8px}
+.pick-row.on{background:var(--accbg)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:1px solid var(--acc);outline-offset:1px}
+
+/* ---- 标签：大幅去彩色；仅 ST 保留红色 ---- */
+/* ---- 标签：分类彩字（低调底）+ ST 保留红色 ---- */
+.tag{border-radius:4px;font-weight:600;border:1px solid var(--line)}
+.t-white{color:var(--c-w)} .t-blue{color:var(--c-b)} .t-monster{color:var(--c-m)}
+.t-cycle{color:var(--c-c)} .t-etf{color:var(--c-e)}
+.t-white,.t-blue,.t-monster,.t-cycle,.t-etf{background:var(--panel2);border-color:var(--line)}
+.t-st{background:rgba(229,72,77,.12);color:var(--c-st);border-color:transparent}
+#np-status.ok{color:var(--up)} #np-status.bad{color:var(--danger)}
+.mc-x:hover{color:var(--danger)}                  /* 多图卡关闭 × hover=红（危险操作） */
+#btn-side-close:hover{background:var(--danger);border-color:var(--danger)}
+
+/* ---- 字体：数字/价格统一等宽（Roboto Mono 优先） ---- */
+body,button,input,select,textarea{font-family:var(--ui)}
+.hud .vl,.si-r,.si-p,.si-g,.po-p,.po-pl,.pi-px,.tp-row .n b,#tb-px,#mini-val,
+.st-eq,.st-table td.v,.st-table td.note,.tr-row span:nth-child(3),.tr-d,.seed-ta,
+.settle-seed .ss-text,.settle-seed .ss-best b,.st-reveal b,.ver,.hist-ret b,
+.hist-badge,.mc-cnt,.pick-row .pc,#pick-count b,.si-hold,.tp-limit,#hud-ret,
+.st-sub b,.po-d,.ni-m,.news-date{font-family:var(--mono)}
+.hud .vl.big{font-weight:600}
+#hud-ret.up,#hud-ret.dn,.si-p,.si-g{font-variant-numeric:tabular-nums}
+
+/* ---- 右侧面板：平底 + 细分隔线，弱化"卡片"感 ---- */
+.col-right{background:var(--panel)}
+.col-right .col-hd{border-bottom:1px solid var(--divider);background:transparent}
+.pos-item,.pl-tr,.news-item,.st-item,.tr-row{box-shadow:none}
+.pl-tr{border-bottom:1px solid var(--divider)}
+.news-item{border-bottom:1px solid var(--divider)}
+#pos-list{background:transparent}
+.col-left{background:transparent}
+.col-left .col-hd{background:var(--panel)}
+.topbar,.multi-tools,#chart-tools{background:var(--panel)}
+#topbar{background:var(--panel)}
+
+/* ---- 交易浮窗：平底 + 细描边；买入红 / 卖出绿（中国习惯，深色自动提亮） ---- */
+#trade-panel{background:var(--panel);background-image:none;box-shadow:var(--shadow);
+  border:1px solid var(--line);border-top:2px solid var(--acc)}
+[data-theme="light"] #trade-panel{background:var(--panel)}
+#tb-px{color:var(--text)}
+#btn-buy{background:var(--buy);border-color:var(--buy);color:#fff}
+#btn-buy:hover{background:var(--buy);filter:brightness(1.1);color:#fff}
+#btn-sell{background:var(--sell);border-color:var(--sell);color:#fff}
+#btn-sell:hover{background:var(--sell);filter:brightness(1.08);color:#fff}
+[data-theme="light"] #btn-buy{color:#fff}[data-theme="light"] #btn-sell{color:#fff}
+
+/* ---- 结算 / 历史 / 弹窗去浓色卡片、回归中性框 ---- */
+#review-bar{background:linear-gradient(90deg,rgba(41,98,255,.16),rgba(41,98,255,.05))}
+.rank-S{background:#8E63D2}.rank-A{background:#0E9C6E}.rank-B{background:#2962FF}
+.rank-C{background:#C08A2D}.rank-D{background:#E5484D}
+[data-theme="light"] .rank-A{background:#089981}
+.st-table tr.hl{background:var(--panel2)}
+.st-table tr.hl td.v{color:var(--acc)}
+.hist-item,.settle-seed,.sel-seed{background:var(--panel2);border-color:var(--line)}
+.hist-badge{background:var(--panel2);color:var(--dim)}
+.hist-badge.up{color:var(--up)}.hist-badge.dn{color:var(--dn)}
+.mode-card .mc-badge{box-shadow:0 0 0 2px var(--bg)}
+.forced{color:var(--danger)}
+#toast{background:var(--acc)}
+#loading-fill{background:var(--acc);border-radius:4px}
+#loading-bar{background:var(--line)}
+
+/* ---- 输入框 / 滚动条 / 杂项中性化 ---- */
+input,select,textarea{background:var(--field);border:1px solid var(--line);color:var(--text)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--line)}
+::-webkit-scrollbar-track{background:transparent}
+.pick-row input,.np-check input{accent-color:var(--acc)}
+.tp-frac .sep{background:var(--line)}
+.tp-limit{color:var(--dim)}
+#main-chart,#chip-chart,#mini-chart,.panel-wrap{border-radius:6px}
+#sel-panels{border-color:var(--line)}
+.pool-bar button,.sel-foot button{white-space:nowrap}
+
+/* ---- 主题切换按钮（图标 + 文字，开局前 / 灯泡内清晰可见） ---- */
+.theme-pill{width:auto;min-width:0;height:auto;padding:3px 12px;border-radius:14px;
+  display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap;
+  background:var(--btn);border:1px solid var(--line);color:var(--text)}
+.theme-pill:hover{background:var(--btn-hi);border-color:var(--acc);color:var(--acc)}
+.theme-pill .t-ic{font-size:13px;line-height:1;color:var(--warn)}
+.theme-pill:hover .t-ic{color:var(--acc)}
+.theme-pill .t-tx{line-height:1}
+#modal-tip .theme-pill,#modal-mode .theme-pill{min-height:26px;flex:none}
+#modal-tip .modal-title,#modal-mode .modal-title,#modal-settle .modal-title{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pool-bar .theme-pill{margin-left:auto;flex:0 0 auto}
+</style>
 </head>
 <body>
 
@@ -589,6 +757,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
     <button id="btn-newpool" title="新建一个自定义股票池（粘贴6位代码，≥3 只即可）">＋ 新建自定义池</button>
     <button id="btn-editpool" style="display:none" title="编辑当前自定义池（增删股票）">✎ 编辑此池</button>
     <button id="btn-delpool" style="display:none" title="删除当前选中的我的池">删除此池</button>
+    <button id="theme-toggle" class="theme-btn theme-pill" title="点击切换主题"><span class="t-ic">☾</span><span class="t-tx">夜间模式</span></button>
   </div>
   <div id="pool-desc"></div>
   <div class="sel-body">
@@ -803,7 +972,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
     <div class="modal-title">新建自定义股票池</div>
     <div class="modal-msg" style="font-size:12px;margin-bottom:8px" id="np-rule">粘贴 6 位股票代码，可用逗号 / 空格 / 换行分隔。系统会用全市场清单校验有效性。池内 ≥3 只即可开局，无上限。</div>
     <input id="np-name" type="text" placeholder="池名称，如：我的芯片池" style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:6px 8px">
-    <textarea id="np-codes" rows="6" placeholder="例如：600519 000858 300750&#10;002594,688981" style="width:100%;box-sizing:border-box;padding:6px 8px;font:12px ui-monospace,Consolas,monospace"></textarea>
+    <textarea id="np-codes" rows="6" placeholder="例如：600519 000858 300750&#10;002594,688981" style="width:100%;box-sizing:border-box;padding:6px 8px;font:12px var(--mono)"></textarea>
     <div id="np-status"></div>
     <div class="modal-btns">
       <button id="np-cancel">取消</button>
@@ -827,7 +996,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 <!-- ============ 💡 炒股小贴士弹窗 ============ -->
 <div id="modal-tip" class="modal-mask" style="display:none">
   <div class="modal-box tip-box">
-    <div class="modal-title">💡 炒股小贴士</div>
+    <div class="modal-title"><span>💡 炒股小贴士</span><button id="tip-theme" class="theme-btn theme-pill" title="点击切换主题"><span class="t-ic">☾</span><span class="t-tx">夜间模式</span></button></div>
     <div id="tip-kicker" class="tip-kicker"></div>
     <div id="tip-body" class="tip-body"></div>
     <div class="tip-foot">
@@ -937,7 +1106,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 <!-- ============ 开局模式选择：A内置精选 / B全市场随机 / C自定义勾选 / D全ETF+LOF ============ -->
 <div id="modal-mode" class="modal-mask" style="display:none">
   <div class="modal-box">
-    <div class="modal-title">🎲 开局先选玩法</div>
+    <div class="modal-title"><span>🎲 开局先选玩法</span><button id="mode-theme" class="theme-btn theme-pill" title="点击切换主题"><span class="t-ic">☾</span><span class="t-tx">夜间模式</span></button></div>
     <div class="mm-sub" id="mm-sub">选择本局要交易的「股票池」。<br>不同股票池，会决定你这局遇到什么样的市场。</div>
     <div class="mode-grid">
       <div class="mode-card a" id="mc-a">

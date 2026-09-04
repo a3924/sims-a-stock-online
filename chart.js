@@ -210,24 +210,60 @@
   }
 
   // ---------- 主题 ----------
-  var T = {
-    bg: '#0d1117', panel: '#0d1117', grid: '#1c2128', text: '#8b949e', textHi: '#e6edf3',
-    up: '#ef4444', dn: '#22c55e', upFill: '#ef4444', dnFill: '#22c55e',
-    cross: '#6e7681', ma5: '#f0b90b', ma10: '#3b82f6', ma20: '#a855f7', ma60: '#ec4899',
-    boll: '#64748b', vol: '#6e7681', dif: '#f0b90b', dea: '#3b82f6', kc: '#f0b90b', dc: '#3b82f6', jc: '#ec4899',
-    rsi6: '#f0b90b', rsi12: '#3b82f6', rsi24: '#a855f7',
-    cci: '#f0b90b', wr1: '#f0b90b', wr2: '#ec4899',
-    bias6: '#f0b90b', bias12: '#3b82f6', bias24: '#a855f7',
-    obv: '#f0b90b', obvma: '#3b82f6',
-    pdi: '#f0b90b', mdi: '#3b82f6', adx: '#a855f7', adxr: '#ec4899',
-    atr: '#f0b90b', roc: '#f0b90b', rocma: '#3b82f6',
-    mtm: '#f0b90b', mtmma: '#3b82f6', vr: '#f0b90b', vrma: '#a855f7',
-    psy: '#f0b90b', psyma: '#3b82f6',
-    crowd: '#22d3ee',                  // 拥挤度（副图）线色
-    volUp: '#f29683', volDn: '#58b9d4', // 信息框量涨跌幅：浅红 / 蓝青（比价格涨跌红绿饱和度低，明显区分）
-    pxTag: '#ffcf3d',                  // 主图价格轴「当前价」标签：黄色
-    mkBuy: '#f85149', mkSell: '#3fb6ff'   // 玩家买卖点：B 买(红) / S 卖(蓝)
+  // r34 TradingView 改版：双主题画布配色。夜间=默认；白天用浅色面板 + 用户指定红涨绿跌。
+  // 涨跌语义：红涨绿跌（A股习惯）。深/浅色底统一用可读红 #E5484D，跌绿 #22AB94。
+  var THEMES = {
+    dark: {
+      bg: '#131313', panel: '#131313', grid: '#262626', line: '#2A2A2A',
+      text: '#8A8A8A', textHi: '#E0E0E0', dimLow: '#6E6E6E', cross: '#5A5F66', ref: '#4B5563',
+      up: '#E5484D', dn: '#089981', upFill: '#E5484D', dnFill: '#089981',
+      ma5: '#D8AE4E', ma10: '#6E8FCC', ma20: '#A987C9', ma60: '#C88AA8',
+      boll: '#8B93A0',
+      dif: '#D8AE4E', dea: '#6E8FCC', kc: '#D8AE4E', dc: '#6E8FCC', jc: '#C88AA8',
+      rsi6: '#D8AE4E', rsi12: '#6E8FCC', rsi24: '#A987C9',
+      cci: '#D8AE4E', wr1: '#D8AE4E', wr2: '#C88AA8',
+      bias6: '#D8AE4E', bias12: '#6E8FCC', bias24: '#A987C9',
+      obv: '#D8AE4E', obvma: '#6E8FCC',
+      pdi: '#D8AE4E', mdi: '#6E8FCC', adx: '#A987C9', adxr: '#C88AA8',
+      atr: '#D8AE4E', roc: '#D8AE4E', rocma: '#6E8FCC',
+      mtm: '#D8AE4E', mtmma: '#6E8FCC', vr: '#D8AE4E', vrma: '#A987C9',
+      psy: '#D8AE4E', psyma: '#6E8FCC',
+      crowd: '#4FA8B8',
+      volUp: '#E5484D', volDn: '#089981',
+      pxTag: '#E0E0E0', pxTagBg: '#1E1E1E', pxTagBd: '#3A3A3A',
+      mkBuy: '#E5484D', mkSell: '#0E9C6E',
+      limUp: '#FFC233', limDn: '#B985FF',   // r35 涨停黄/跌停紫描边（夜间亮版）
+      padBg: 'rgba(15,15,15,.86)', panelBg: 'rgba(30,30,30,.96)'
+    },
+    light: {
+      bg: '#FFFFFF', panel: '#FFFFFF', grid: '#EAEAEA', line: '#E0E0E0',
+      text: '#707070', textHi: '#202020', dimLow: '#9AA0A6', cross: '#9AA0A6', ref: '#C9CDD3',
+      up: '#E5484D', dn: '#22AB94', upFill: '#E5484D', dnFill: '#22AB94',
+      ma5: '#B8860B', ma10: '#3D5FA8', ma20: '#6F54A8', ma60: '#A64D79',
+      boll: '#7A8699',
+      dif: '#B8860B', dea: '#3D5FA8', kc: '#B8860B', dc: '#3D5FA8', jc: '#A64D79',
+      rsi6: '#B8860B', rsi12: '#3D5FA8', rsi24: '#6F54A8',
+      cci: '#B8860B', wr1: '#B8860B', wr2: '#A64D79',
+      bias6: '#B8860B', bias12: '#3D5FA8', bias24: '#6F54A8',
+      obv: '#B8860B', obvma: '#3D5FA8',
+      pdi: '#B8860B', mdi: '#3D5FA8', adx: '#6F54A8', adxr: '#A64D79',
+      atr: '#B8860B', roc: '#B8860B', rocma: '#3D5FA8',
+      mtm: '#B8860B', mtmma: '#3D5FA8', vr: '#B8860B', vrma: '#6F54A8',
+      psy: '#B8860B', psyma: '#3D5FA8',
+      crowd: '#2E8E8E',
+      volUp: '#E5484D', volDn: '#22AB94',
+      pxTag: '#202020', pxTagBg: '#F5F5F5', pxTagBd: '#D9D9D9',
+      mkBuy: '#E5484D', mkSell: '#089981',
+      limUp: '#E39A00', limDn: '#8E44AD',   // r35 涨停黄/跌停紫描边（白天加深版）
+      padBg: 'rgba(255,255,255,.9)', panelBg: 'rgba(255,255,255,.97)'
+    }
   };
+  var T = {};
+  function setTheme(name) {
+    var s = THEMES[name] || THEMES.dark;
+    for (var k in s) if (Object.prototype.hasOwnProperty.call(s, k)) T[k] = s[k];
+  }
+  setTheme('dark');   // 默认夜间；app.js 启动时按记忆值再次 setTheme
 
   function fmt(n, dec) {
     if (n == null || isNaN(n)) return '--';
@@ -237,6 +273,42 @@
     if (v >= 1e8) return (v / 1e8).toFixed(2) + '亿';
     if (v >= 1e4) return (v / 1e4).toFixed(1) + '万';
     return String(Math.round(v));
+  }
+
+  // ---------- r35 涨跌停/上市标注工具 ----------
+  function hexCol(hex) {
+    var h = String(hex || '').replace('#', '');
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    var n = parseInt(h, 16);
+    if (isNaN(n)) n = 0;
+    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+  }
+  function colA(hex, a) {
+    var c = hexCol(hex);
+    return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')';
+  }
+  // 涨跌停判定：当日收盘精确等于 round(前收 × (1±限幅)) 视为封板/封跌停。
+  // 前复权序列在除权日附近可能有 <0.1% 的微差，故两侧都按 2 位小数归整后比较（ratio 由调用方按板块给出）。
+  function limitDir(d, i, ratio) {
+    if (!ratio || i <= 0) return null;
+    var pc = d.c[i - 1], c = d.c[i];
+    if (!(pc > 0) || c == null || !(c > 0)) return null;
+    var rc = Math.round(c * 100) / 100;
+    var ru = Math.round(pc * (1 + ratio) * 100) / 100;
+    if (rc === ru) return 'up';
+    var rd = Math.round(pc * (1 - ratio) * 100) / 100;
+    if (rd > 0 && rc === rd) return 'dn';
+    return null;
+  }
+  function rr(ctx, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
   }
 
   // ---------- K线图 ----------
@@ -315,6 +387,70 @@
   };
   KChart.prototype.setEndIdx = function (i) { this.endIdx = i; this.draw(); };
 
+  // r35 涨停/跌停描边渐变：描边贴蜡烛边缘，涨/跌停各自最强端（上端/下端）渐隐到 2/5 处消失
+  // yHi/yLo = 蜡烛最高/最低（影线端点）像素 y；yo/yc = 开收像素 y
+  KChart.prototype._drawLimit = function (cx, cw, yHi, yLo, yo, yc, dir) {
+    var ctx = this.ctx, col = (dir === 'up') ? T.limUp : T.limDn;
+    var top = Math.min(yo, yc), bot = Math.max(yo, yc);
+    var bodyH = Math.max(1, bot - top);
+    var lw = Math.min(2, Math.max(1.1, cw * 0.22));       // 线宽随蜡烛粗细，窄K也清晰
+    var bx = cx - cw / 2 + lw / 2, by = top + lw / 2;
+    var bw = Math.max(1, cw - lw), bh = Math.max(1, bodyH - lw);
+    var span = yLo - yHi;                                  // 影线总高（像素）
+    if (span < 1) {                                        // 一字板等极扁蜡烛：整根淡描边
+      ctx.strokeStyle = colA(col, 0.72); ctx.lineWidth = lw;
+      ctx.strokeRect(bx, by, bw, bh);
+      return;
+    }
+    var g;
+    if (dir === 'up') {
+      // 涨停：上 2/5 从无到有 —— 蜡烛顶端最强，向下 2/5 处完全淡出（贴蜡烛上面）
+      var gB = yHi + span * 0.4;
+      g = ctx.createLinearGradient(0, yHi, 0, Math.max(yHi + 1, gB));
+      g.addColorStop(0, colA(col, 0.95));
+      g.addColorStop(1, colA(col, 0));
+    } else {
+      // 跌停：下 2/5 从无到有 —— 蜡烛底端最强，向上 2/5 处完全淡出（贴蜡烛下面）
+      var gA = yLo - span * 0.4;
+      g = ctx.createLinearGradient(0, Math.min(yLo - 1, gA), 0, yLo);
+      g.addColorStop(0, colA(col, 0));
+      g.addColorStop(1, colA(col, 0.95));
+    }
+    ctx.strokeStyle = g; ctx.lineWidth = lw;
+    ctx.strokeRect(bx, by, bw, bh);
+    // 强端（涨停上沿 / 跌停下沿）补一道等高纯色描边，呼应"贴蜡烛上面/下面"
+    var capLw = Math.max(2.2, cw * 0.22);
+    ctx.strokeStyle = col; ctx.lineWidth = capLw;
+    ctx.beginPath();
+    if (dir === 'up') {
+      ctx.moveTo(bx, by + capLw/2 - 0.5); ctx.lineTo(bx + bw, by + capLw/2 - 0.5);
+    } else {
+      ctx.moveTo(bx, by + bh - capLw/2 + 0.5); ctx.lineTo(bx + bw, by + bh - capLw/2 + 0.5);
+    }
+    ctx.stroke();
+  };
+
+  // r35 「上市」小标签：绘在序列首根K线（近期上市股）上方
+  KChart.prototype._drawIpoTag = function (x0, pw, mainTop, mainBot, px, py, i) {
+    var ctx = this.ctx, d = this.data;
+    if (!d || !d.h || i == null || d.h[i] == null) return;
+    var lab = '上市', fSize = 9;
+    ctx.font = 'bold ' + fSize + 'px "Roboto Mono","PingFang SC","Microsoft YaHei",monospace';
+    var tw = ctx.measureText(lab).width;
+    var tagW = tw + 8, tagH = 14;
+    var fx = px(i);
+    var tx = Math.max(x0 + 1, Math.min(fx - tagW / 2, x0 + pw - tagW - 1));
+    var ty = py(d.h[i]) - tagH - 3;
+    ty = Math.max(mainTop + 2, Math.min(ty, mainBot - tagH - 2));
+    ctx.fillStyle = '#E8A33D';                       // 琥珀底，昼夜通用
+    rr(ctx, tx, ty, tagW, tagH, 7);
+    ctx.fill();
+    ctx.fillStyle = '#161616';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(lab, tx + tagW / 2, ty + tagH / 2 + 0.5);
+    ctx.textBaseline = 'alphabetic';
+  };
+
   KChart.prototype.resize = function (w, h) {
     var dpr = window.devicePixelRatio || 1;
     this.cv.width = w * dpr; this.cv.height = h * dpr;
@@ -390,7 +526,7 @@
     var px = function (i) { return x0 + (i - start) * bw + bw / 2; };
 
     // 网格 + 价格轴
-    ctx.font = '11px ui-monospace, Consolas, monospace';
+    ctx.font = '11px "Roboto Mono",ui-monospace,Consolas,monospace';
     ctx.textBaseline = 'middle';
     ctx.strokeStyle = T.grid; ctx.lineWidth = 1;
     ctx.fillStyle = T.text; ctx.textAlign = 'left';
@@ -409,6 +545,9 @@
       var yo = py(d.o[i]), yc = py(d.c[i]);
       var top = Math.min(yo, yc), hgt = Math.max(Math.abs(yc - yo), 1);
       ctx.fillRect(cx - cw / 2, top, cw, hgt);
+      // r35 涨停（黄·贴蜡烛上面渐变）/ 跌停（紫·贴蜡烛下面渐变）描边
+      var ld = limitDir(d, i, this.opts.limit);
+      if (ld) this._drawLimit(cx, cw, py(d.h[i]), py(d.l[i]), yo, yc, ld);
     }
 
     // 玩家买卖点标注：B（买入，红）画在当日最低价下方；S（卖出，蓝）画在最高价上方（r18）
@@ -425,14 +564,14 @@
           var yB = Math.min(py(d.l[mi]) + 10, mainBot - 8);
           ctx.beginPath(); ctx.arc(mcx, yB, 7, 0, Math.PI * 2);
           ctx.fillStyle = T.mkBuy; ctx.fill();
-          ctx.fillStyle = '#fff'; ctx.font = 'bold 9px ui-monospace, Consolas, monospace';
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 9px "Roboto Mono",ui-monospace,Consolas,monospace';
           ctx.fillText('B', mcx, yB);
         }
         if (hasS) {
           var yS = Math.max(py(d.h[mi]) - 10, mainTop + 8);
           ctx.beginPath(); ctx.arc(mcx, yS, 7, 0, Math.PI * 2);
           ctx.fillStyle = T.mkSell; ctx.fill();
-          ctx.fillStyle = '#fff'; ctx.font = 'bold 9px ui-monospace, Consolas, monospace';
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 9px "Roboto Mono",ui-monospace,Consolas,monospace';
           ctx.fillText('S', mcx, yS);
         }
       }
@@ -463,23 +602,23 @@
       var cells = [];
       for (var qm = 0; qm < 4; qm++) {
         var maV = (maArr[qm] && maArr[qm][hIdx] != null) ? maArr[qm][hIdx] : null;
-        ctx.font = 'bold 10px ui-monospace, Consolas, monospace';
+        ctx.font = 'bold 10px "Roboto Mono",ui-monospace,Consolas,monospace';
         var wL = ctx.measureText('M' + maPs[qm]).width;
-        ctx.font = '10px ui-monospace, Consolas, monospace';
+        ctx.font = '10px "Roboto Mono",ui-monospace,Consolas,monospace';
         var wV = (maV == null) ? ctx.measureText('--').width : ctx.measureText(fmt(maV)).width;
         cells.push({ nm: 'M' + maPs[qm], v: maV, col: maC[qm], wL: wL, wV: wV, w: wL + 3 + wV });
       }
       var rowW = Math.max(cells[0].w + 8 + cells[1].w, cells[2].w + 8 + cells[3].w);
       var mBx = x0 + 4, mBy = mainBot - 32;   // 主图底部左上内缩，贴左下角
-      ctx.fillStyle = 'rgba(13,17,23,0.9)';
+      ctx.fillStyle = T.padBg;
       ctx.fillRect(mBx - 3, mBy, rowW + 6, 29);
       ctx.strokeStyle = T.grid; ctx.lineWidth = 1; ctx.strokeRect(mBx - 3, mBy, rowW + 6, 29);
       var drawMCell = function (c, xx, yy) {
-        ctx.font = 'bold 10px ui-monospace, Consolas, monospace';
+        ctx.font = 'bold 10px "Roboto Mono",ui-monospace,Consolas,monospace';
         ctx.textAlign = 'left'; ctx.textBaseline = 'top';
         ctx.fillStyle = c.col; ctx.fillText(c.nm, xx, yy);
-        ctx.font = '10px ui-monospace, Consolas, monospace';
-        ctx.fillStyle = (c.v == null) ? '#6e7681' : T.textHi;
+        ctx.font = '10px "Roboto Mono",ui-monospace,Consolas,monospace';
+        ctx.fillStyle = (c.v == null) ? T.dimLow : T.textHi;
         ctx.fillText((c.v == null) ? '--' : fmt(c.v), xx + c.wL + 3, yy);
       };
       // 2+2 两行两列：第 1 行 M1/M2，第 2 行 M3/M4；第二格紧跟本行第一格右侧（修复 r22 竖排溢出）
@@ -517,17 +656,23 @@
     var chg = prev >= 0 && d.c[prev] ? (d.c[last] - d.c[prev]) / d.c[prev] * 100 : 0;
     var name = this.opts.title || (d.name || '') + ' ' + (d.code || '');
     ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-    ctx.font = 'bold 12px ui-monospace, Consolas, monospace';
+    ctx.font = 'bold 12px "Roboto Mono",ui-monospace,Consolas,monospace';
     ctx.fillStyle = T.textHi;
     ctx.fillText(name, x0, 2);
     var nw = ctx.measureText(name).width;
-    ctx.font = '11px ui-monospace, Consolas, monospace';
+    ctx.font = '11px "Roboto Mono",ui-monospace,Consolas,monospace';
     var spc = ctx.measureText('0').width;   // 等宽字体：用数字宽度近似 1 个空格
     var col = chg >= 0 ? T.up : T.dn;
     ctx.fillStyle = col;
     ctx.fillText((chg >= 0 ? '+' : '') + fmt(chg, 2) + '%  开' + fmt(d.o[last]) +
                  ' 高' + fmt(d.h[last]) + ' 低' + fmt(d.l[last]) + ' 收' + fmt(d.c[last]),
                  x0 + nw + 6 * spc, 3);
+
+    // r35 近期上市股：序列首根（上市日）若在可见窗口内，画「上市」标签（老股/指数不标；置于叠加层之上防被均线盖住）
+    if (this.opts.ipo && this.opts.firstIdx != null &&
+        this.opts.firstIdx >= start && this.opts.firstIdx <= end && this.opts.firstIdx < d.c.length) {
+      this._drawIpoTag(x0, pw, mainTop, mainBot, px, py, this.opts.firstIdx);
+    }
 
     // 十字光标
     if (this.cross && this.cross.x >= x0 && this.cross.x <= x0 + pw) {
@@ -544,27 +689,27 @@
       info.push('高' + fmt(d.h[idx]) + ' 低' + fmt(d.l[idx]));
       info.push('量' + fmtVol(d.v[idx]));
       if (d.t && d.t[idx] != null) info.push('换' + fmt(d.t[idx], 2) + '%');
-      ctx.font = '11px ui-monospace, Consolas, monospace';
+      ctx.font = '11px "Roboto Mono",ui-monospace,Consolas,monospace';
       var bw2 = 136, bh2 = info.length * 14 + 8;
       // 光标在绘图区右半边 → 信息框翻到光标左侧；否则放右侧；硬性夹紧在绘图区内不溢出
       var bx = (cx2 - x0 > pw / 2) ? (cx2 - bw2 - 10) : (cx2 + 10);
       bx = Math.max(x0, Math.min(bx, x0 + pw - bw2));
       var by = Math.max(mainTop + 4, Math.min(this.cross.y - bh2 / 2, mainBot - bh2 - 4));
-      ctx.fillStyle = 'rgba(22,27,34,0.94)'; ctx.fillRect(bx, by, bw2, bh2);
-      ctx.strokeStyle = '#30363d'; ctx.strokeRect(bx, by, bw2, bh2);
+      ctx.fillStyle = T.panelBg; ctx.fillRect(bx, by, bw2, bh2);
+      ctx.strokeStyle = T.line; ctx.strokeRect(bx, by, bw2, bh2);
       ctx.fillStyle = T.textHi; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
       info.forEach(function (t, k) { ctx.fillText(t, bx + 6, by + 4 + k * 14); });
       // 日期后跟当日涨跌幅百分比（红涨绿跌；无前收对比显示 --）
       var dayPct = 0, hasPrev = idx > 0 && d.c[idx - 1] > 0;
       if (hasPrev) dayPct = (d.c[idx] - d.c[idx - 1]) / d.c[idx - 1] * 100;
-      ctx.fillStyle = hasPrev ? (dayPct >= 0 ? T.up : T.dn) : '#6e7681';
+      ctx.fillStyle = hasPrev ? (dayPct >= 0 ? T.up : T.dn) : T.dimLow;
       ctx.fillText(hasPrev ? ((dayPct >= 0 ? '+' : '') + fmt(dayPct, 2) + '%') : '--',
         bx + 6 + ctx.measureText(info[0]).width + 6, by + 4);
       // 成交量后跟涨跌幅（相对昨日量）：浅红涨 / 蓝青跌，与价格涨跌幅红/绿区分（r22）
       var hasPrevV = idx > 0 && d.v[idx - 1] > 0;
       var vPct = hasPrevV ? (d.v[idx] - d.v[idx - 1]) / d.v[idx - 1] * 100 : null;
-      ctx.font = '11px ui-monospace, Consolas, monospace';
-      ctx.fillStyle = hasPrevV ? (vPct >= 0 ? T.volUp : T.volDn) : '#6e7681';
+      ctx.font = '11px "Roboto Mono",ui-monospace,Consolas,monospace';
+      ctx.fillStyle = hasPrevV ? (vPct >= 0 ? T.volUp : T.volDn) : T.dimLow;
       ctx.fillText(hasPrevV ? ((vPct >= 0 ? '+' : '') + fmt(vPct, 2) + '%') : '--',
         bx + 6 + ctx.measureText(info[3]).width + 6, by + 4 + 3 * 14);
       this.hoverIdx = idx;
@@ -581,18 +726,18 @@
       if (d.c[aIdx] != null) {
         var tagP = d.c[aIdx];
         var tagY = Math.max(mainTop + 8, Math.min(mainBot - 8, py(tagP)));
-        ctx.font = 'bold 11px ui-monospace, Consolas, monospace';
+        ctx.font = 'bold 11px "Roboto Mono",ui-monospace,Consolas,monospace';
         var tagTxt = fmt(tagP);
         var tW = ctx.measureText(tagTxt).width + 10;
         var tx = x0 + pw + 3;
         var tRight = x0 + pw + this.padR - 2;
         if (tx + tW > tRight) tx = Math.max(x0 + pw + 2, tRight - tW);   // 窄边防右侧溢出
-        ctx.fillStyle = '#272c33'; ctx.fillRect(tx, tagY - 8, tW, 16);
-        ctx.strokeStyle = 'rgba(255,207,61,0.65)'; ctx.lineWidth = 1; ctx.strokeRect(tx, tagY - 8, tW, 16);
+        ctx.fillStyle = T.pxTagBg; ctx.fillRect(tx, tagY - 8, tW, 16);
+        ctx.strokeStyle = T.pxTagBd; ctx.lineWidth = 1; ctx.strokeRect(tx, tagY - 8, tW, 16);
         ctx.fillStyle = T.pxTag; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
         ctx.fillText(tagTxt, tx + 5, tagY + 0.5);
         // 绘图区右缘一小段黄线标出该价高度
-        ctx.strokeStyle = 'rgba(255,207,61,0.55)';
+        ctx.strokeStyle = T.pxTagBd;
         ctx.beginPath(); ctx.moveTo(x0 + pw - 7, tagY); ctx.lineTo(x0 + pw, tagY); ctx.stroke();
       }
     }
@@ -816,7 +961,7 @@
     // 顶部边框线
     ctx.strokeStyle = T.grid; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x0, top); ctx.lineTo(x0 + pw, top); ctx.stroke();
-    ctx.font = '10px ui-monospace, Consolas, monospace';
+    ctx.font = '10px "Roboto Mono",ui-monospace,Consolas,monospace';
     ctx.textAlign = 'left'; ctx.textBaseline = 'top';
 
     // 窗口标题行：指标名 + 指标当前值（默认 dim）
@@ -838,7 +983,7 @@
       ctx.stroke(); ctx.setLineDash([]);
     };
     var hRef = function (vv, color, dash) {
-      ctx.strokeStyle = color || '#30363d'; ctx.lineWidth = 1;
+      ctx.strokeStyle = color || T.line; ctx.lineWidth = 1;
       ctx.setLineDash(dash || [3, 3]);
       ctx.beginPath(); ctx.moveTo(x0, vv); ctx.lineTo(x0 + pw, vv); ctx.stroke();
       ctx.setLineDash([]);
@@ -867,7 +1012,7 @@
       if (mx <= 0) mx = 1;
       var mY = function (v) { return pTop + pH / 2 - v / mx * (pH / 2); };
       var zero = mY(0);
-      ctx.strokeStyle = '#30363d'; ctx.beginPath(); ctx.moveTo(x0, zero); ctx.lineTo(x0 + pw, zero); ctx.stroke();
+      ctx.strokeStyle = T.line; ctx.beginPath(); ctx.moveTo(x0, zero); ctx.lineTo(x0 + pw, zero); ctx.stroke();
       for (var i = start; i <= end; i++) {
         if (m.bar[i] == null) continue;
         ctx.fillStyle = m.bar[i] >= 0 ? T.up : T.dn;
@@ -888,7 +1033,7 @@
       var p = subParams('rsi');
       var r6 = rsi(d.c, p[0]), r12 = rsi(d.c, p[1]), r24 = rsi(d.c, p[2]);
       var rY = function (v) { return pTop + pH - Math.max(0, Math.min(100, v)) / 100 * pH; };
-      hRef(pTop + pH * 0.2, '#30363d'); hRef(pTop + pH * 0.8, '#30363d');   // 20/80 参考
+      hRef(pTop + pH * 0.2, T.line); hRef(pTop + pH * 0.8, T.line);   // 20/80 参考
       yLine(r6, T.rsi6, rY); yLine(r12, T.rsi12, rY); yLine(r24, T.rsi24, rY);
       ctx.fillStyle = T.text;
       ctx.fillText(title + '  ' + fmt(r6[vi], 1) + '/' + fmt(r12[vi], 1) + '/' + fmt(r24[vi], 1), titleX, titleY);
@@ -898,7 +1043,7 @@
       for (var i = start; i <= end; i++) if (cc[i] != null && Math.abs(cc[i]) > cm) cm = Math.abs(cc[i]);
       cm = Math.max(cm, 100);
       var cY = function (v) { return pTop + pH / 2 - v / cm * (pH / 2); };
-      ctx.strokeStyle = '#30363d'; ctx.beginPath(); ctx.moveTo(x0, cY(0)); ctx.lineTo(x0 + pw, cY(0)); ctx.stroke();
+      ctx.strokeStyle = T.line; ctx.beginPath(); ctx.moveTo(x0, cY(0)); ctx.lineTo(x0 + pw, cY(0)); ctx.stroke();
       hRef(cY(100)); hRef(cY(-100));
       yLine(cc, T.cci, cY);
       ctx.fillStyle = T.text;
@@ -918,7 +1063,7 @@
       }
       bm = Math.max(bm, 2);
       var bY = function (v) { return pTop + pH / 2 - v / bm * (pH / 2); };
-      ctx.strokeStyle = '#30363d'; ctx.beginPath(); ctx.moveTo(x0, bY(0)); ctx.lineTo(x0 + pw, bY(0)); ctx.stroke();
+      ctx.strokeStyle = T.line; ctx.beginPath(); ctx.moveTo(x0, bY(0)); ctx.lineTo(x0 + pw, bY(0)); ctx.stroke();
       yLine(b6, T.bias6, bY); yLine(b12, T.bias12, bY); yLine(b24, T.bias24, bY);
       ctx.fillStyle = T.text;
       ctx.fillText(title + '  ' + fmt(b6[vi], 2) + '/' + fmt(b12[vi], 2) + '/' + fmt(b24[vi], 2), titleX, titleY);
@@ -960,7 +1105,7 @@
       }
       rm = Math.max(rm, 1);
       var rcY = function (v) { return pTop + pH / 2 - v / rm * (pH / 2); };
-      ctx.strokeStyle = '#30363d'; ctx.beginPath(); ctx.moveTo(x0, rcY(0)); ctx.lineTo(x0 + pw, rcY(0)); ctx.stroke();
+      ctx.strokeStyle = T.line; ctx.beginPath(); ctx.moveTo(x0, rcY(0)); ctx.lineTo(x0 + pw, rcY(0)); ctx.stroke();
       yLine(rc.roc, T.roc, rcY); yLine(rc.ma, T.rocma, rcY);
       ctx.fillStyle = T.text;
       ctx.fillText(title + '  ' + fmt(rc.roc[vi], 2), titleX, titleY);
@@ -972,7 +1117,7 @@
       }
       mmm = Math.max(mmm, 0.01);
       var mmY = function (v) { return pTop + pH / 2 - v / mmm * (pH / 2); };
-      ctx.strokeStyle = '#30363d'; ctx.beginPath(); ctx.moveTo(x0, mmY(0)); ctx.lineTo(x0 + pw, mmY(0)); ctx.stroke();
+      ctx.strokeStyle = T.line; ctx.beginPath(); ctx.moveTo(x0, mmY(0)); ctx.lineTo(x0 + pw, mmY(0)); ctx.stroke();
       yLine(mm.mtm, T.mtm, mmY); yLine(mm.ma, T.mtmma, mmY);
       ctx.fillStyle = T.text;
       ctx.fillText(title + '  ' + fmt(mm.mtm[vi], 2), titleX, titleY);
@@ -989,7 +1134,7 @@
       var p = subParams('psy');
       var ps = psy(d.c, p[0], p[1]);
       var pY = function (v) { return pTop + pH - Math.max(0, Math.min(100, v)) / 100 * pH; };
-      hRef(pTop + pH * 0.5, '#30363d'); hRef(pTop + pH * 0.25); hRef(pTop + pH * 0.75);
+      hRef(pTop + pH * 0.5, T.line); hRef(pTop + pH * 0.25); hRef(pTop + pH * 0.75);
       yLine(ps.psy, T.psy, pY); yLine(ps.ma, T.psyma, pY);
       ctx.fillStyle = T.text;
       ctx.fillText(title + '  ' + fmt(ps.psy[vi], 0), titleX, titleY);
@@ -1033,8 +1178,8 @@
       for (var i4 = start; i4 <= end; i4++) if (cd[i4] != null && Math.abs(cd[i4]) > cMx) cMx = Math.abs(cd[i4]);
       cMx *= 1.12;
       var cY = function (v) { return pTop + pH / 2 - v / cMx * (pH / 2); };
-      ctx.strokeStyle = '#30363d'; ctx.beginPath(); ctx.moveTo(x0, cY(0)); ctx.lineTo(x0 + pw, cY(0)); ctx.stroke();
-      hRef(cY(1), '#4b5563'); hRef(cY(-1), '#4b5563');
+      ctx.strokeStyle = T.line; ctx.beginPath(); ctx.moveTo(x0, cY(0)); ctx.lineTo(x0 + pw, cY(0)); ctx.stroke();
+      hRef(cY(1), T.ref); hRef(cY(-1), T.ref);
       yLine(cd, T.crowd, cY);
       ctx.fillStyle = T.text;
       ctx.fillText(title + '  ' + fmt(cd[vi], 2), titleX, titleY);
@@ -1075,7 +1220,7 @@
     var ctx = this.ctx, W = this.cssW, H = this.cssH;
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = T.panel; ctx.fillRect(0, 0, W, H);
-    ctx.font = '10px ui-monospace, Consolas, monospace';
+    ctx.font = '10px "Roboto Mono",ui-monospace,Consolas,monospace';
     if (!this.data) { ctx.fillStyle = T.text; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('筹码峰', 4, 2); return; }
     var frames = this.data.frames, keys = Object.keys(frames);
     var lastKey = keys[0];
@@ -1096,7 +1241,7 @@
       for (var i = 0; i < bins.length; i++) {
         var w0 = frame[i] / maxPct * (W - 46);
         var y0 = padT + (bins.length - 1 - i) * barH;
-        ctx.fillStyle = '#3b82f6';
+        ctx.fillStyle = '#2962FF';
         ctx.globalAlpha = 0.55 + frame[i] / maxPct * 0.45;
         ctx.fillRect(4, y0, Math.max(0, w0), Math.max(1, barH - 1));
         ctx.globalAlpha = 1;
@@ -1121,7 +1266,7 @@
       if (!(step > 0)) step = (hi - lo) / 30;
       var yT = yOf(p + step / 2), yB = yOf(p - step / 2);
       var w1 = frame[i] / maxPct * barMaxW;
-      ctx.fillStyle = '#3b82f6';
+      ctx.fillStyle = '#2962FF';
       ctx.globalAlpha = 0.55 + frame[i] / maxPct * 0.45;
       ctx.fillRect(4, yT, Math.max(0, w1), Math.max(1, yB - yT));
     }
@@ -1141,7 +1286,7 @@
     sma: sma, ema: ema, macd: macd, kdj: kdj, boll: boll,
     rsi: rsi, cci: cci, wr: wr, bias: bias, obv: obv, dmi: dmi,
     atr: atr, roc: roc, mtm: mtm, vr: vr, psy: psy,
-    fmtBig: fmtBig, subTitle: subTitle, theme: T,
+    fmtBig: fmtBig, subTitle: subTitle, theme: T, setTheme: setTheme,
     SUB_PDEF: SUB_PDEF, subParams: subParams, setSubParams: setSubParams, subLabel: subLabel,
     resetSubParamsAll: resetSubParamsAll
   };
