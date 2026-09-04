@@ -495,8 +495,15 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
   /* 多图：替换主图区，1+1+1+1 纵排、页面变长；卡片无边矩形、卡间黑缝 */
   #multi-panel{order:3;position:static;z-index:auto;background:var(--bg);margin:0;padding:0}
   #multi-panel .multi-tools{background:var(--panel);padding:6px 10px;margin:0 0 10px;border:0;flex-wrap:wrap;gap:5px}
-  #multi-panel #multi-grid{flex:none;overflow:visible;padding:0 10px;grid-template-columns:1fr;grid-auto-rows:auto;gap:10px}
+  /* r34：手机多图保持 1+1+1+1 纵排（不改版式）。此前买卖栏"挡住图"的真因是 #multi-panel 继承 base 的 flex:1、
+     高度被 .game-body 滚动容器压缩，4 张超高卡片溢出容器底盖住流式 #trade-panel。
+     修复：多图时解除整条链的高度压缩（col-mid/multi-panel/multi-grid 均 flex:none 按内容排布），
+     页面在 .game-body 内自然变长，买卖栏(#trade-panel, order:5 static)随之落到 4 张图之后的最下方 */
+  #screen-game.multi-on .col-mid{flex:none}
+  #screen-game.multi-on #multi-panel{flex:none}
+  #multi-panel #multi-grid{flex:none;overflow:visible;padding:0 8px;grid-template-columns:1fr;grid-auto-rows:auto;gap:10px;min-height:0}
   #multi-panel .mc-card{border:0;border-radius:0;background:var(--panel)}
+  #multi-panel .mc-cv{height:auto}
   .multi-tools .hint{display:none}
   #mini-wrap{order:4;display:none}
   /* 交易面板：无边矩形、永远排在最底部，上方黑缝与其它模块分开 */
