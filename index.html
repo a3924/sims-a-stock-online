@@ -168,6 +168,25 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 /* 结算动作行：复盘本局 / 历史战绩 / 再来一局 */
 .st-actions{display:flex;flex-wrap:wrap;gap:10px;max-width:760px;margin:14px auto 0}
 .st-actions button{flex:1 1 150px;min-height:40px;font-size:14px;padding:8px 12px}
+/* 选股屏：本局种子（r30；r31 起移到「开始你的交易人生」下方，仅按钮+提示，不展示种子串） */
+.sel-seed{max-width:900px;margin:4px auto 0;padding:6px 12px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+.sel-seed .ss-lb{font-size:12px;color:var(--acc);flex:0 0 auto}
+.sel-seed .ss-txt{flex:1 1 220px;min-width:0;font-family:ui-monospace,Consolas,monospace;
+  font-size:11px;line-height:1.5;color:var(--text);word-break:break-all}
+.sel-seed .ss-hint{font-size:12px;color:var(--dim);flex:0 0 auto}
+.sel-seed button{flex:0 0 auto;min-height:30px;font-size:12px;padding:4px 10px}
+/* 结算屏：挑战种子分享区（r30） */
+.settle-seed{max-width:760px;margin:16px auto 0;padding:14px 16px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:10px}
+.settle-seed .ss-hd{font-size:13px;color:var(--acc);margin-bottom:8px}
+.settle-seed .ss-best{font-size:12px;color:var(--dim);margin-bottom:8px}
+.settle-seed .ss-best b{font-family:ui-monospace,Consolas,monospace}
+.settle-seed .ss-text{font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:1.7;
+  white-space:pre-wrap;word-break:break-all;color:var(--text);background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;max-height:30vh;overflow-y:auto}
+.settle-seed .ss-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.settle-seed .ss-btns button{flex:1 1 130px;min-height:36px;font-size:13px}
 /* 💝 打赏与建议弹窗 */
 #modal-support .support-msg{font-size:13px;line-height:1.8;color:var(--text);text-align:left}
 #modal-support .support-mail{margin:12px 0 4px;font-size:14px;font-weight:700;color:var(--text)}
@@ -271,6 +290,26 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .tip-foot{display:flex;align-items:center;gap:8px;margin-top:12px}
 .tip-idx{color:var(--dim);font-size:11px;flex:1}
 .tip-foot button{min-height:32px;padding:4px 10px;font-size:12px}
+/* ---------- 🎯 挑战种子弹窗（r30） ---------- */
+.seed-box{max-width:460px}
+.seed-ta{width:100%;box-sizing:border-box;margin-top:10px;padding:10px 12px;
+  font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:1.6;
+  color:var(--text);background:var(--panel2);border:1px solid var(--line);
+  border-radius:8px;resize:vertical;word-break:break-all}
+.seed-ta:focus{outline:none;border-color:var(--acc)}
+.seed-preview{margin-top:8px;font-size:12px;line-height:1.6;color:var(--dim);
+  min-height:22px;word-break:break-all}
+.seed-ok{color:var(--acc)}
+.seed-bad{color:var(--warn)}
+.seed-dim{color:var(--dim)}
+.seed-names{margin-top:4px;color:var(--text);font-size:12px;line-height:1.7}
+.seed-score{margin-top:6px;font-size:13px}
+.seed-score b{font-family:ui-monospace,Consolas,monospace}
+@media(max-width:640px){
+  .seed-box{width:calc(100vw - 24px)}
+  .seed-box .modal-btns{flex-wrap:wrap}
+  .seed-box .modal-btns button{flex:1 1 auto;min-width:96px}
+}
 /* ---------- 🏆 历史战绩弹窗 ---------- */
 #modal-hist .modal-box{max-width:560px;width:calc(100vw - 32px)}
 .hist-n{font-size:12px;color:var(--dim);font-weight:400}
@@ -296,6 +335,10 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
 .hist-ops{display:flex;align-items:center;gap:10px;margin-top:12px}
 .hist-ops .spacer{flex:1}
 .hist-ops button{min-height:30px;font-size:12px;padding:4px 12px}
+/* r31：历史战绩每条「🎯 种子」一键复制本局种子 */
+.hist-seed-btn{flex:none;min-height:26px;font-size:12px;padding:3px 10px;border:1px solid var(--line);
+  background:var(--panel);border-radius:6px;color:var(--acc);cursor:pointer}
+.hist-seed-btn:hover{border-color:var(--acc)}
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-thumb{background:#30363d;border-radius:4px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -564,6 +607,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
     <button id="btn-resume" style="display:none">继续上次存档 ↺</button>
     <button class="primary" id="btn-start">开始你的交易人生 →</button>
   </div>
+  <div id="sel-seed" class="sel-seed" style="display:none"></div>
 </div>
 
 <!-- ============ 游戏界面 ============ -->
@@ -715,6 +759,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
     <button id="btn-support" title="打赏支持作者，或发邮件提建议 / 报 Bug">💝 打赏和建议</button>
     <button class="primary" id="btn-again">再来一局</button>
   </div>
+  <div id="settle-seed" class="settle-seed" style="display:none"></div>
 </div>
 
 <!-- ============ 💝 打赏与建议弹窗 ============ -->
@@ -785,7 +830,38 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
       <button id="tip-rand" title="随机一条">🎲</button>
     </div>
     <div class="modal-btns" style="margin-top:4px">
+      <button id="tip-seed" title="把本局的股票池和起始日编码成种子，分享给别人挑战">🎯 分享本局种子</button>
       <button id="tip-close">知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 🎯 用种子开局 ============ -->
+<div id="modal-seed-in" class="modal-mask" style="display:none">
+  <div class="modal-box seed-box">
+    <div class="modal-title">🎯 用种子开局</div>
+    <div class="modal-msg">粘贴别人分享的挑战种子，就能玩到<b>完全相同</b>的一局：同一批股票、同一段行情。开局后成绩可以直接比拼。</div>
+    <textarea id="seed-input" class="seed-ta" rows="3" spellcheck="false"
+      placeholder="粘贴种子，例如：#我的人生模拟器·A股版 3f7Kd9mQ2xLp5Rt8…"></textarea>
+    <div id="seed-preview" class="seed-preview"></div>
+    <div class="modal-btns">
+      <button id="seed-in-cancel">取消</button>
+      <button class="primary" id="seed-in-ok">开始挑战</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 🎯 本局种子 / 分享 ============ -->
+<div id="modal-seed-out" class="modal-mask" style="display:none">
+  <div class="modal-box seed-box">
+    <div class="modal-title">🎯 本局挑战种子</div>
+    <div class="modal-msg">把这段种子发给朋友，他们就会玩到<b>一模一样</b>的一局（同股票、同行情、同起点）。</div>
+    <textarea id="seed-out-text" class="seed-ta" rows="3" readonly spellcheck="false"></textarea>
+    <div id="seed-out-info" class="seed-preview"></div>
+    <div class="modal-btns">
+      <button id="seed-out-copy-seed" title="只复制种子（不含成绩）">复制种子</button>
+      <button id="seed-out-copy-result" title="复制种子加你的成绩，适合发群里挑战">复制成绩文案</button>
+      <button class="primary" id="seed-out-close">完成</button>
     </div>
   </div>
 </div>
@@ -895,6 +971,7 @@ input,select{background:var(--bg);color:var(--text);border:1px solid var(--line)
     <div class="mm-row">
       <span class="mm-note">小提示：开局后，还可以通过顶栏的「更换股票池」重新抽取。C 模式除外：只要自选数量不超过本局上限，所选标的都会全部保留。</span>
       <button id="btn-mode-resume" style="display:none">继续上次存档 ↺</button>
+      <button id="btn-seed-start" title="用别人分享的种子开局，玩完全相同的一局">🎯 用种子开局</button>
       <button class="primary" id="btn-mode-close">先不开局</button>
     </div>
   </div>

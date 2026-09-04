@@ -69,7 +69,7 @@
   // 游戏中隐藏真实日期（只显示相对交易日 T+n，T0 = 开局日，其后 T+1/T+2… 随游戏推进递增），真实区间仅在结算页"显示真实日期"揭晓。
   var HIDE = true;
   var GAME_TITLE = '我的模拟人生 · A股版';   // 游戏名（多处复用）
-  var GAME_VERSION = 'v20260904.r29';   // r29：开局玩法弹窗/选股屏/结算确认文案整体改版（弹窗导语与A精选池/B全市场随机/C自定义池/D ETF+LOF卡描述重写、C卡「选择 3–20 只 → 全部开局」、开局数量区带默认✓、小提示重写；选股屏副标「全市场实时行情·模拟选股」+引导语「选择你的股票池，开始这一局模拟人生。」+主按钮「开始你的交易人生」；结算确认弹窗正文细化）；r28：打赏和建议弹窗文案更新（感谢你愿意玩到这里 / 数据整理 / 喝杯奶茶 / 认真看反馈 / 感谢使用与支持）；r27：副图标题指标值跟随鼠标十字光标联动（同花顺式——悬停哪根K线即显示该根数值，移开恢复最新）；r26：结算报告移除 0AMV 活跃市值行，本局区间与同期沪深300改为两行排版（基准涨跌上红/绿色）；r25：自选/自定义池彻底放开3只开局(C勾选/开局/剔除兜底全链路)+游戏内自选池「✎增删本池股票」+打赏二维码120%去外框；r24：结算后「打赏和建议」（感谢文案+邮箱 gzy000@foxmail.com+赞赏二维码）；r23：自定义池下限改为3只且不限上限 + 局内「编辑此池」增删（下一局生效）；r22：MA数值栏2+2修复+手机指标栏提示与标题同行可点折叠+量涨跌幅浅红/蓝青+价格轴黄色当前价标签；r21：指标设置改版（均线/布林带入列主图叠加+分图模式+拥挤度+信息框量涨跌幅+主图左下MA数值栏+重置全部参数）；r20：长按/右键副图指标改参数；r19：复权守卫+副图英文；r18：结算滚动+分类排序+D模式+💡+B/S标注+历史+复盘
+  var GAME_VERSION = 'v20260904.r31';   // r31：种子分享细化（选股屏「本局种子」移至「开始你的交易人生」下方、不写种子串只给按钮+提示；游戏中💡与结算分享文案剔除评级、含当前收益/我的成绩与同期沪深300；夏普评级改 S>3/A>2/B>1/C>0；结算屏种子区移到复盘/再来一局下方；历史战绩每条加「🎯种子」一键复制本局种子；B/C 随机池/自定义大池个别标的一时拉不到不再整局卡死——55s 单只看门狗+残余剔除放行保住开局）；r30：挑战种子——每局都编码成一颗种子（股票池3–20只+起始日，文本开头 #我的人生模拟器·A股版、后接 base62 大小写+数字）；开始交易屏亮出「本局种子」可复制、游戏中💡灯泡面板加「分享本局种子」、结算页写出一整段分享文案；「用种子开局」= 同一批股票+同一起点，成绩可横向比拼，本机按种子存最佳成绩；换股票池或局内增删自选后本局作废、不再计入该种子最佳；r29：开局玩法弹窗/选股屏/结算确认文案整体改版（弹窗导语与A精选池/B全市场随机/C自定义池/D ETF+LOF卡描述重写、C卡「选择 3–20 只 → 全部开局」、开局数量区带默认✓、小提示重写；选股屏副标「全市场实时行情·模拟选股」+引导语「选择你的股票池，开始这一局模拟人生。」+主按钮「开始你的交易人生」；结算确认弹窗正文细化）；r28：打赏和建议弹窗文案更新（感谢你愿意玩到这里 / 数据整理 / 喝杯奶茶 / 认真看反馈 / 感谢使用与支持）；r27：副图标题指标值跟随鼠标十字光标联动（同花顺式——悬停哪根K线即显示该根数值，移开恢复最新）；r26：结算报告移除 0AMV 活跃市值行，本局区间与同期沪深300改为两行排版（基准涨跌上红/绿色）；r25：自选/自定义池彻底放开3只开局(C勾选/开局/剔除兜底全链路)+游戏内自选池「✎增删本池股票」+打赏二维码120%去外框；r24：结算后「打赏和建议」（感谢文案+邮箱 gzy000@foxmail.com+赞赏二维码）；r23：自定义池下限改为3只且不限上限 + 局内「编辑此池」增删（下一局生效）；r22：MA数值栏2+2修复+手机指标栏提示与标题同行可点折叠+量涨跌幅浅红/蓝青+价格轴黄色当前价标签；r21：指标设置改版（均线/布林带入列主图叠加+分图模式+拥挤度+信息框量涨跌幅+主图左下MA数值栏+重置全部参数）；r20：长按/右键副图指标改参数；r19：复权守卫+副图英文；r18：结算滚动+分类排序+D模式+💡+B/S标注+历史+复盘
   // 用户双击版本号自定义的开局起点（DAYS 索引）；null=随机。持久化在 localStorage。
   var CUR_START = (function () {
     var v = localStorage.getItem('sims.customStart');
@@ -138,7 +138,7 @@
       v: 1, g: GAME_VERSION,
       startIdx: S.startIdx, curIdx: S.curIdx, day: S.day, cash: S.cash,
       md: S.marginDebt, mu: S.marginUsed, mu2: S.marginUnlocked,
-      over: S.over, revealed: S.revealed, sel: S.sel, rp: S.repoolUsed ? 1 : 0,
+      over: S.over, revealed: S.revealed, sel: S.sel, rp: S.repoolUsed ? 1 : 0, sd: S.seed || null,
       pool: S.pool.map(function (p) { return p.code; }),
       pos: S.positions.map(function (p) { return [p.code, p.shares, p.cost, p.buyIdx]; }),
       tr: S.trades.map(function (t) {
@@ -204,7 +204,7 @@
   }
   function histModeLabel(src) {
     if (!src) return '全市场B';
-    return ({ builtin: '内置精选A', uni: '全市场B', mine: '自定义C', etf: 'ETF+LOF D' })[src.kind] || '全市场B';
+    return ({ builtin: '内置精选A', uni: '全市场B', mine: '自定义C', etf: 'ETF+LOF D', seed: '种子挑战' })[src.kind] || '全市场B';
   }
   // 结算成功后归档本局（只读快照：战绩 + 交易流水，供历史列表复盘查阅）
   function archiveGame() {
@@ -217,6 +217,7 @@
         src: { kind: src.kind, id: src.id },
         pool: S.pool.slice(0, 40).map(function (p) { return { c: p.code, n: p.name, t: p.cat }; }),
         s0: DAYS[S.startIdx], s1: DAYS[S.curIdx], days: S.day, nPool: S.pool.length,
+        sIdx: S.startIdx, sd: S.seed || null,      // r31：记录起始日下标 + 本局挑战种子（历史一键复制本局种子用）
         eq: st.finalEq, ret: st.totalRet, annual: st.annual, sh: st.sharpe, mdd: st.mdd,
         alpha: st.alpha, beta: st.beta, wr: st.winRate, wins: st.wins, losses: st.losses,
         nTr: S.trades.length, bench: st.benchRet, rank: st.rank, posVal: st.posVal,
@@ -245,7 +246,8 @@
       startIdx: o.startIdx, curIdx: o.curIdx, day: o.day, cash: o.cash,
       marginDebt: o.md, marginUsed: o.mu, positions: [], trades: [], equity: [],
       map: map, pool: pool, sel: o.sel, marginUnlocked: o.mu2,
-      over: o.over, revealed: o.revealed, stats: o.stats, repoolUsed: !!o.rp
+      over: o.over, revealed: o.revealed, stats: o.stats, repoolUsed: !!o.rp,
+      seed: o.sd || null          // r30 挑战局标记随存档恢复
     };
     S.positions = (o.pos || []).map(function (a) {
       return { code: a[0], shares: a[1], cost: a[2], buyIdx: a[3] };
@@ -289,6 +291,8 @@
   }
   function randStart() {
     var maxStart = TOTAL_BARS - GAME_BARS - 1;
+    // r30 种子局的起点优先级最高（只作用本局开局，beginNewSession 取用后立即清空）
+    if (SEED_START != null) return Math.max(0, Math.min(TOTAL_BARS - 1, SEED_START));
     // 有自定义起点时优先使用；允许一直选到数据末端附近（不足一整局时游戏到最新一天自动提前结算）
     if (CUR_START != null) return Math.max(0, Math.min(TOTAL_BARS - 1, CUR_START));
     var i = Math.floor(Math.random() * (maxStart + 1));
@@ -315,7 +319,8 @@
       cash: INIT_CASH, marginDebt: 0, marginUsed: 0,
       positions: [], trades: [], equity: [], map: {},
       pool: [], sel: null, marginUnlocked: false, over: false,
-      revealed: false, stats: null, repoolUsed: false
+      revealed: false, stats: null, repoolUsed: false,
+      seed: null            // r30 挑战种子串：非空 = 本局仍是挑战局（换池/增删股票后置空）
     };
     s.equity.push({ d: DAYS[startIdx], v: INIT_CASH });
     return s;
@@ -328,6 +333,240 @@
   var curSrc = { kind: 'uni', id: '' };
   var NP_MODAL_OPEN = false;
   var NP_EDIT_ID = null;   // r23 自定义池编辑：非空 = 在编辑现有池（替换 codes/name），空 = 新建
+
+  // ---------- 挑战种子（r30） ----------
+  // 把一局「股票池 + 起始交易日」编码成可分享的短串：同一颗种子 = 同一批股票 + 同一段行情，成绩可横向比拼。
+  // 位布局（高位→低位）：版本4 | 起始日12 | 代码区 N×20 | 数量5 | 校验8（共 29+20N 位），整体转 base62。
+  // 数量字段紧挨校验位：解码时无需知道总长即可从尾部读出 N，再按 N 补全前导零解析版本/起始日/代码。
+  // 直接编码 6 位股票代码（而非股票库序号）：股票库日后更新也不会让旧种子失效或错位。
+  var SEED_PREFIX = '#我的人生模拟器·A股版';
+  var SEED_VER = 1;
+  var SEED_MIN = 3, SEED_MAX = 20;
+  var SEED_B62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  var SEED_BEST_LS = 'sims.seedBest.v1';
+  var SEED_START = null;   // 种子局起点：只在开局那一刻生效，用完即清（不影响玩家的自定义起点设置）
+  var SEED_BEST_PREV = null;   // 结算前该种子既有最佳快照：用于区分「首次挑战 / 刷新纪录 / 未破纪录」
+
+  function b62Enc(v) {
+    if (v === 0n) return '0';
+    var out = '';
+    while (v > 0n) { out = SEED_B62.charAt(Number(v % 62n)) + out; v = v / 62n; }
+    return out;
+  }
+  function b62Dec(s) {
+    var v = 0n;
+    for (var i = 0; i < s.length; i++) {
+      var d = SEED_B62.indexOf(s.charAt(i));
+      if (d < 0) return null;
+      v = v * 62n + BigInt(d);
+    }
+    return v;
+  }
+  function binW(n, w) {                       // 数字 → 定宽二进制串
+    var s = (n >>> 0).toString(2);
+    if (s.length > w) s = s.slice(s.length - w);
+    while (s.length < w) s = '0' + s;
+    return s;
+  }
+  function seedCheck(bits) {                  // 8 位校验：按字节求和取模 256
+    var sum = 0;
+    for (var i = 0; i < bits.length; i += 8) sum += parseInt(bits.substr(i, 8), 2);
+    return sum % 256;
+  }
+  function pad6(c) { c = String(c); while (c.length < 6) c = '0' + c; return c; }
+
+  function encodeSeed(codes, startIdx) {
+    try {
+      var n = codes.length;
+      if (n < SEED_MIN || n > SEED_MAX) return null;
+      if (!(startIdx >= 0 && startIdx <= 4095)) return null;
+      var bits = binW(SEED_VER, 4) + binW(startIdx, 12);
+      for (var i = 0; i < n; i++) {
+        var c = parseInt(codes[i], 10);
+        if (!(c >= 0 && c <= 999999)) return null;
+        bits += binW(c, 20);
+      }
+      bits += binW(n, 5);
+      bits += binW(seedCheck(bits), 8);
+      return b62Enc(BigInt('0b' + bits));
+    } catch (e) { return null; }
+  }
+  // 解析种子文本（容忍前缀 / # / 空白 / 换行），返回 {codes,startIdx,payload} 或 {err}
+  function decodeSeed(text) {
+    var t = String(text || '').replace(/\s+/g, '');
+    if (!t) return { err: '请先粘贴种子' };
+    var m = t.match(/[0-9A-Za-z]{8,}$/);
+    if (!m) return { err: '没找到种子编码，请确认复制完整' };
+    var payload = m[0];
+    var v = b62Dec(payload);
+    if (v === null) return { err: '种子含非法字符' };
+    var s = v.toString(2);
+    if (s.length < 13) return { err: '种子不完整' };
+    // 尾部 13 位 = 数量5 + 校验8：先从尾部读出 N，再补全前导零解析其余字段
+    var chk = parseInt(s.slice(-8), 2);
+    var n = parseInt(s.slice(-13, -8), 2);
+    if (!(n >= SEED_MIN && n <= SEED_MAX)) return { err: '种子中标的数量是 ' + n + ' 只（应为 3–20），请确认复制完整' };
+    var total = 29 + 20 * n;
+    if (s.length > total) return { err: '种子长度异常，可能混入了其它内容' };
+    while (s.length < total) s = '0' + s;
+    if (seedCheck(s.slice(0, total - 8)) !== chk) return { err: '校验失败：种子可能被截断或改动过' };
+    var ver = parseInt(s.slice(0, 4), 2);
+    if (ver !== SEED_VER) return { err: '这是 v' + ver + ' 版种子，当前版本还不支持' };
+    var startIdx = parseInt(s.slice(4, 16), 2);
+    var codes = [];
+    for (var i = 0; i < n; i++) codes.push(pad6(parseInt(s.substr(16 + 20 * i, 20), 2)));
+    return { codes: codes, startIdx: startIdx, payload: payload };
+  }
+  function seedMissing(codes) {               // 种子里的代码在当前股票库里缺失的部分
+    return codes.filter(function (c) { return !KL.stocks[c]; });
+  }
+  function seedShareText(payload) { return SEED_PREFIX + ' ' + payload; }
+
+  // 本地最佳成绩（纯静态站无法联网排行，只记录自己在这个种子上的最好成绩）
+  function readSeedBest() {
+    try { return JSON.parse(localStorage.getItem(SEED_BEST_LS) || '{}') || {}; } catch (e) { return {}; }
+  }
+  function seedBestOf(payload) {
+    var b = readSeedBest();
+    return (b[payload] && typeof b[payload].ret === 'number') ? b[payload] : null;
+  }
+  function saveSeedBest(payload, ret) {
+    try {
+      var b = readSeedBest();
+      var cur = b[payload];
+      if (!cur || typeof cur.ret !== 'number' || ret > cur.ret) b[payload] = { ret: ret, ts: Date.now() };
+      localStorage.setItem(SEED_BEST_LS, JSON.stringify(b));
+      return b[payload];
+    } catch (e) { return null; }
+  }
+
+  // 用种子开局：固定股票池 + 起始日（简单模式上限 8 只，种子超限自动切复杂模式）
+  function startSeedGame(codes, startIdx) {
+    if (codes.length > 8 && isEasy()) {
+      gameMode = 'full';
+      try { localStorage.setItem(MODE_LS, gameMode); } catch (e) {}
+      syncModeUI();
+    }
+    SEED_START = startIdx;
+    curSrc = { kind: 'seed', id: 'seed', codes: codes.slice() };
+    closeSeedInModal();
+    beginNewSession();
+  }
+  // 换池 / 增删股票 → 作废本局挑战资格（种子清空，成绩不再计入该种子的最佳记录）
+  function dropChallenge(msg) {
+    if (S && S.seed) {
+      S.seed = null;
+      saveProgress();
+      if (msg) toast(msg);
+    }
+  }
+  // 当前局的种子串（按实际入池标的重编码；无进行中的局则返回 null）
+  function currentSeed() {
+    if (!S || !S.pool || !S.pool.length) return null;
+    return encodeSeed(S.pool.map(function (p) { return p.code; }), S.startIdx);
+  }
+
+  // ---------- 种子弹窗 ----------
+  function openSeedInModal() {
+    var m = el('modal-seed-in');
+    if (!m) return;
+    var ta = el('seed-input');
+    if (ta) ta.value = '';
+    renderSeedPreview('');
+    m.style.display = 'flex';
+    if (ta) setTimeout(function () { try { ta.focus(); } catch (e) {} }, 80);
+  }
+  function closeSeedInModal() { var m = el('modal-seed-in'); if (m) m.style.display = 'none'; }
+
+  // 输入时实时预览：几只股票、从哪天开始、是否都能在当前股票库里找到
+  function renderSeedPreview(text) {
+    var box = el('seed-preview');
+    if (!box) return;
+    var t = String(text || '').replace(/\s+/g, '');
+    if (!t) { box.innerHTML = '<span class="seed-dim">粘贴种子后，这里会显示这局有几只股票、从哪一天开始。</span>'; return; }
+    var d = decodeSeed(t);
+    if (d.err) { box.innerHTML = '<span class="seed-bad">✕ ' + d.err + '</span>'; return; }
+    var miss = seedMissing(d.codes);
+    var names = d.codes.map(function (c) { return KL.stocks[c] ? KL.stocks[c].name : c + '(缺)'; });
+    var d0 = DAYS[d.startIdx] ? fmtDate(DAYS[d.startIdx]) : '第 ' + d.startIdx + ' 个交易日';
+    box.innerHTML = '<span class="seed-ok">✓ ' + d.codes.length + ' 只 · 从 ' + d0 + ' 开始</span>' +
+      '<div class="seed-names">' + names.join('、') + '</div>' +
+      (miss.length ? '<span class="seed-bad">注意：有 ' + miss.length + ' 只不在当前股票库中，无法开局</span>' : '');
+  }
+  function applySeedInput() {
+    var ta = el('seed-input');
+    var d = decodeSeed(ta ? ta.value : '');
+    if (d.err) { toast(d.err); return; }
+    var miss = seedMissing(d.codes);
+    if (miss.length) {
+      toast('种子中有 ' + miss.length + ' 只不在当前股票库（' + miss.slice(0, 3).join('、') + '），无法开局');
+      return;
+    }
+    startSeedGame(d.codes, d.startIdx);
+  }
+
+  function openSeedOutModal() {
+    var payload = currentSeed();
+    if (!payload) { toast('当前没有进行中的局'); return; }
+    var m = el('modal-seed-out');
+    if (!m) return;
+    var ta = el('seed-out-text');
+    var share = seedResultText();
+    if (ta) ta.value = share || seedShareText(payload);   // r31：文本域直接是完整分享文案（含收益与沪深300）
+    var info = el('seed-out-info');
+    if (info) {
+      var best = seedBestOf(payload);
+      var cur = null;
+      if (S.stats && typeof S.stats.totalRet === 'number') cur = S.stats.totalRet;
+      else if (!S.over) cur = liveTotalRet();              // r31：进行中也实时显示收益
+      var curOk = (cur != null && isFinite(cur));
+      info.innerHTML = '<span class="seed-ok">' + S.pool.length + ' 只标的 · 从 ' + fmtDate(DAYS[S.startIdx]) + ' 开始</span>' +
+        (curOk
+          ? '<div class="seed-score">本局 <b class="' + cls(cur) + '">' + pct(cur) + '</b>' +
+            (best ? ' ｜ 历史最佳 <b class="' + cls(best.ret) + '">' + pct(best.ret) + '</b>' : ' ｜ 首次挑战') + '</div>'
+          : '');
+    }
+    m.style.display = 'flex';
+  }
+  function closeSeedOutModal() { var m = el('modal-seed-out'); if (m) m.style.display = 'none'; }
+
+  function copyText(t, okMsg) {
+    var done = function () { toast(okMsg || '已复制'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(done, function () { fallbackCopy(t, done); });
+    } else fallbackCopy(t, done);
+  }
+  function fallbackCopy(t, done) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      done();
+    } catch (e) { toast('复制失败，请手动长按选中复制'); }
+  }
+  // r31：进行中的实时总收益率（与顶栏同口径：总资产 - 本金）
+  function liveTotalRet() {
+    if (!S) return NaN;
+    var eq = equityNow();
+    return (eq - INIT_CASH) / INIT_CASH * 100;
+  }
+  // 分享文案：种子 + 成绩（结算后=我的成绩；游戏进行中=当前收益），均带同期沪深300，不含评级字母
+  function seedResultText() {
+    var payload = currentSeed();
+    if (!payload) return '';
+    var ret = null, bench = NaN;
+    if (S.stats && typeof S.stats.totalRet === 'number') { ret = S.stats.totalRet; bench = S.stats.benchRet; }
+    else if (!S.over) { ret = liveTotalRet(); bench = benchReturn(); }   // r31：进行中按实时口径
+    var retTxt = (ret != null && isFinite(ret)) ? pct(ret) : '—';
+    var benchTxt = isFinite(bench) ? pct(bench) : '—';
+    var head = SEED_PREFIX + ' ' + payload;
+    if (!S.over) {
+      return head + '\n当前收益：' + retTxt + '（同期沪深300 ' + benchTxt + '）· 第 ' + S.day + ' 个交易日\n来挑战我！';
+    }
+    return head + '\n我的成绩：' + retTxt + '（同期沪深300 ' + benchTxt + '）\n来挑战我！';
+  }
 
   function uniAllObjs() {
     var arr = [];
@@ -366,6 +605,7 @@
   }
   function poolLabel(src) {
     if (!src) return '全市场随机';
+    if (src.kind === 'seed') return '挑战种子';            // r30
     if (src.kind === 'etf') return '全部 ETF+LOF（D模式）';
     if (src.kind === 'builtin') { for (var i = 0; i < PL.builtin.length; i++) if (PL.builtin[i].id === src.id) return PL.builtin[i].name; }
     if (src.kind === 'mine') { var m = listMinePools(); for (var j = 0; j < m.length; j++) if (m[j].id === src.id) return m[j].name; }
@@ -376,6 +616,14 @@
     src = src || curSrc;
     if (!src || src.kind === 'uni') return uniAllObjs();
     if (src.kind === 'etf') return etfAllObjs();
+    if (src.kind === 'seed') {                       // r30 种子局：池即种子里写死的那些代码
+      var so = [];
+      (src.codes || []).forEach(function (c) {
+        var s2 = KL.stocks[c];
+        if (s2) so.push({ code: c, name: s2.name, ind: s2.ind, cat: s2.cat });
+      });
+      return so;
+    }
     var codes = null;
     if (src.kind === 'builtin') {
       for (var i = 0; i < PL.builtin.length; i++) if (PL.builtin[i].id === src.id) { codes = PL.builtin[i].codes; break; }
@@ -564,7 +812,7 @@
   function sacredBadHandle(r, pool) {
     var badN = r.bad.map(function (b) { return b.name; }).join('、');
     var kept = pool.filter(function (p) { return r.bad.indexOf(p) < 0; });
-    var mn3 = (curSrc && curSrc.kind === 'mine') ? MIN_MINE : modeMin();   // r25 自定义池兜底下限 3 只
+    var mn3 = (curSrc && (curSrc.kind === 'mine' || curSrc.kind === 'seed')) ? MIN_MINE : modeMin();   // r25 自定义池兜底下限 3 只；r30 种子局同（3–20 只种子自身保证）
     if (kept.length >= mn3) { r.pool = kept; r.bad = []; return null; }
     return '你勾选的标的无法获取行情：' + badN + '。剔除后仅剩 ' + kept.length + ' 只（需 ≥' + mn3 + '）无法开局，请返回重新勾选。';
   }
@@ -574,13 +822,15 @@
     var label = poolLabel(curSrc), size = candsSize(curSrc);
     busy(true, '正在抽取标的', '池来源：<b>' + label + '</b>（候选 ' + size + ' 只）→ ' + pickTxt(curSrc, size) + ' 并获取 5 年日K：静态库CDN/东财/腾讯多源级联+本地缓存（重复游玩秒开）…');
     var startIdx = randStart();
+    SEED_START = null;              // r30：种子起点只用于本局开局，用完即清（不影响玩家的自定义起点）
     var cands = resolveCands(curSrc);
-    var mn = (curSrc && curSrc.kind === 'mine') ? MIN_MINE : modeMin();   // r25 自定义池 ≥3 即可开局
+    var mn = (curSrc && (curSrc.kind === 'mine' || curSrc.kind === 'seed')) ? MIN_MINE : modeMin();   // r25 自定义池 ≥3 即可开局；r30 种子局同（3–20 只种子自身保证）
     if (cands.length < mn) { retryFn = beginNewSession; return busyErr('当前池有效标的仅 ' + cands.length + ' 只，不足 ' + mn + ' 只无法开局。请换一个池或在「＋新建自定义池」中建更大的池。'); }
     var pool = openingPool(cands);
     if (pool.length < mn) { retryFn = beginNewSession; return busyErr('当前池可抽取标的不足 ' + mn + ' 只，无法开局。请换一个池或新建更大的池。'); }
     // 神圣池（C 模式全量纳入）不可替换，坏标的自留剔除；随机池（uni/builtin）交给 ensureData 按类别补抽替换
-    var sacred = (curSrc.kind === 'mine' && pool.length === cands.length && cands.length <= pickCap());
+    // r30：种子局同样是「神圣池」——池就是种子写死的那些，个别标的拉不到数就剔除，不用随机股替换
+    var sacred = (curSrc.kind === 'seed') || (curSrc.kind === 'mine' && pool.length === cands.length && cands.length <= pickCap());
     var r = await ensureData(pool, startIdx, !sacred, onProg, cands);
     if (r.bad && r.bad.length) {
       if (sacred) {
@@ -596,8 +846,14 @@
         toast('以下 ETF 无足够历史行情，已自动剔除：' + r.bad.map(function (b) { return b.name; }).join('、'));
         r.pool = keptE; r.bad = [];
       } else {
-        retryFn = beginNewSession;
-        return busyErr('部分标的无法获取行情：' + r.bad.map(function (b) { return b.name; }).join('、') + '。请检查网络后重试。');
+        // r32：随机池/大自定义池个别标的一时拉不到（外部源卡死/无足够历史）→ 剔除放行，保住开局；剩余不足底线才阻断
+        var keptG = r.pool.filter(function (p) { return r.bad.indexOf(p) < 0; });
+        if (keptG.length < mn) {
+          retryFn = beginNewSession;
+          return busyErr('多数标的无法获取行情，仅 ' + keptG.length + ' 只成功（需 ≥' + mn + '）。请检查网络后点此重试。');
+        }
+        toast('以下标的无法获取足够行情，已自动剔除：' + r.bad.map(function (b) { return b.name; }).join('、') + '。本局继续。');
+        r.pool = keptG; r.bad = [];
       }
     }
     busy(false);
@@ -606,6 +862,9 @@
     S.sel = r.pool[0].code;
     S.map = {};
     S.pool.forEach(function (p) { S.map[p.code] = buildMap(KL.stocks[p.code]); });
+    // r30：本局 = 一颗可分享的种子（股票池代码 + 起始日）。换池/局内增删股票会作废挑战（见 dropChallenge）
+    S.seed = encodeSeed(S.pool.map(function (p) { return p.code; }), startIdx) || null;
+    if (curSrc.kind === 'seed' && !S.seed) { retryFn = beginNewSession; return busyErr('本局标的无法编码成挑战种子，请重新开局。'); }
     if (sacred && pool.length !== r.pool.length) {
       toast('以下标的无法获取行情，已自动剔除：' + pool.filter(function (p) { return r.pool.indexOf(p) < 0; }).map(function (p) { return p.name; }).join('、'));
     }
@@ -622,6 +881,7 @@
   // 开局池生成：mine 自定义池 ≤pickCap（≤上限）只 → 全部纳入（用户勾选即所选即所玩，不丢弃所选）；
   // 其余（uni / builtin / 超过上限的自定义池）→ samplePool 按分类配额抽 poolTarget 只
   function openingPool(cands) {
+    if (curSrc.kind === 'seed') return cands.slice();   // r30 种子局：原样全纳入，顺序即种子顺序（不洗牌）
     if (curSrc.kind === 'mine' && cands.length <= pickCap()) {
       var a = cands.slice();
       for (var i = a.length - 1; i > 0; i--) {
@@ -635,6 +895,7 @@
   }
   // 抽取环节的进度文案
   function pickTxt(src, size) {
+    if (src.kind === 'seed') return '种子 ' + size + ' 只全部纳入';   // r30
     if (src.kind === 'mine' && size <= pickCap()) return '所选 ' + size + ' 只全部纳入';
     if (size < poolTarget()) return '仅 ' + size + ' 只，全部纳入';
     return '抽取 ≤' + poolTarget() + ' 只';
@@ -692,6 +953,20 @@
     });
     var hint = el('pool-count-hint');
     if (hint) hint.innerHTML = '本局可交易 <b>' + S.pool.length + '</b> 只（含 ' + etfN + ' 只ETF · 池：' + poolLabel(curSrc) + (curSrc.kind === 'uni' ? ' · 同行业≤2' : '') + '）';
+
+    // r30/r31 开始交易前：选股屏亮出本局种子（股票池+起始日已定）——r31 起不展示种子串，只给复制按钮+提示，放「开始你的交易人生」按钮下方一栏
+    var ssd = el('sel-seed');
+    if (ssd) {
+      var sp2 = (!S.over) ? currentSeed() : null;
+      if (sp2) {
+        ssd.style.display = 'flex';
+        ssd.innerHTML = '<span class="ss-lb">🎯 本局种子</span>' +
+          '<button id="ss-copy-sel" title="复制本局种子，发给朋友即可同局挑战">复制本局种子</button>' +
+          '<span class="ss-hint">可复制种子和朋友一起挑战</span>';
+        var cb = el('ss-copy-sel');
+        if (cb) cb.onclick = function () { copyText(seedShareText(sp2), '种子已复制，发给朋友挑战吧'); };
+      } else ssd.style.display = 'none';
+    }
 
     // 4 面板
     if (!selCharts.length) {
@@ -777,6 +1052,8 @@
         dd.innerHTML = bd + (size < tgt
           ? '　<span style="color:#f0b90b">仅 ' + size + ' 只，开局抽全部</span>'
           : '　<span style="color:#8b949e">当前 ' + (isEasy() ? '简单 · 抽 8 只' : '复杂 · 抽 18 只') + '</span>');
+      } else if (curSrc.kind === 'seed') {   // r30
+        dd.innerHTML = '🎯 挑战种子局：种子里写死的 ' + size + ' 只标的全部纳入，牌面与起点固定不变（换池按钮不可用，结算成绩按种子记录最佳）';
       } else {
         var md = '';
         var mine = listMinePools();
@@ -895,6 +1172,7 @@
       busy(false);
       if (r.bad && r.bad.length) { toast('无法获取行情：' + r.bad.map(function (b) { return b.name; }).join('、') + '，本次未增删。'); return; }
     }
+    dropChallenge('已改动股票池，本局不再计入挑战成绩');   // r30：动了池就退出挑战
     objs.forEach(function (o) { if (have.indexOf(o.code) < 0) S.pool.push(o); });
     if (delC.length) S.pool = S.pool.filter(function (p) { return codes.indexOf(p.code) >= 0; });
     S.map = {};
@@ -923,22 +1201,28 @@
     var cands = resolveCands(src);
     if (!cands.length) { syncPoolUI(); toast('该池暂无有效标的'); return; }
     busy(true, '正在按池抽取', '池来源：<b>' + poolLabel(src) + '</b>（候选 ' + cands.length + ' 只），' + pickTxt(src, cands.length) + '并获取行情…');
-    var mn2 = (src.kind === 'mine') ? 3 : modeMin();   // r23 自定义池放宽：≥3 即可开局（modeMin 是其它池的随机抽取底线）
+    var mn2 = (src.kind === 'mine' || src.kind === 'seed') ? 3 : modeMin();   // r23 自定义池放宽 ≥3；r30/r32 种子局同（3–20 只种子自身保证）
     if (cands.length < mn2) { busy(false); toast('该池有效标的不足 ' + mn2 + ' 只，无法开局'); syncPoolUI(); return; }
     var startIdx = S ? S.startIdx : randStart();
     var pool = openingPool(cands);
     if (pool.length < mn2) { busy(false); toast('该池可抽取标的不足 ' + mn2 + ' 只'); syncPoolUI(); return; }
-    // 神圣池（C 模式全量纳入）不可替换，坏标的自留剔除；随机池交给 ensureData 按类别补抽替换
-    var sacred = (src.kind === 'mine' && pool.length === cands.length && cands.length <= pickCap());
+    // 神圣池（种子局 / C 模式全量纳入）不可替换，坏标的自留剔除；随机池交给 ensureData 按类别补抽替换
+    var sacred = (src.kind === 'seed') || (src.kind === 'mine' && pool.length === cands.length && cands.length <= pickCap());
     var r = await ensureData(pool, startIdx, !sacred, onProg, cands);
     if (r.bad && r.bad.length) {
       if (sacred) {
         var dropMsg = sacredBadHandle(r, pool);
         if (dropMsg) { busy(false); syncPoolUI(); return toast(dropMsg); }
       } else {
-        busy(false);
-        retryFn = applyPoolChange;
-        return busyErr('部分标的无法获取行情：' + r.bad.map(function (b) { return b.name; }).join('、') + '。可切换池来源或点此重试。');
+        // r32：随机池/大自定义池个别标的一时拉不到 → 剔除放行；剩余不足底线才阻断
+        var kept2 = r.pool.filter(function (p) { return r.bad.indexOf(p) < 0; });
+        if (kept2.length < mn2) {
+          busy(false);
+          retryFn = applyPoolChange;
+          return busyErr('多数标的无法获取行情，仅 ' + kept2.length + ' 只成功（需 ≥' + mn2 + '）。可切换池来源或点此重试。');
+        }
+        toast('以下标的无法获取足够行情，已自动剔除：' + r.bad.map(function (b) { return b.name; }).join('、') + '。本局继续。');
+        r.pool = kept2; r.bad = [];
       }
     }
     busy(false);
@@ -946,6 +1230,8 @@
     S.sel = r.pool[0].code;
     S.map = {};
     S.pool.forEach(function (p) { S.map[p.code] = buildMap(KL.stocks[p.code]); });
+    // r30：开局前切换池来源 → 按新牌面重编本局种子（还在选股屏、未开始交易时）
+    if (S && !S.over) S.seed = encodeSeed(S.pool.map(function (p) { return p.code; }), S.startIdx) || null;
     if (sacred && pool.length !== r.pool.length) {
       toast('以下标的无法获取行情，已自动剔除：' + pool.filter(function (p) { return r.pool.indexOf(p) < 0; }).map(function (p) { return p.name; }).join('、'));
     }
@@ -1892,6 +2178,7 @@
   // ---------- 更换股票池（每局一次） ----------
   function openRepoolModal() {
     if (!S || S.over) return;
+    if (curSrc && curSrc.kind === 'seed') return toast('种子局的股票池就写在种子里，固定不变，无需更换');   // r30
     if (S.repoolUsed) return toast('本局已使用过更换股票池');
     el('modal-repool').style.display = 'flex';
   }
@@ -1935,6 +2222,7 @@
     closeRepoolModal();
     if (!S || S.over || S.repoolUsed) return;
     S.repoolUsed = true;
+    dropChallenge('已更换股票池，本局不再计入挑战成绩');   // r30：换了池就不是原来那一局了
     // 1) 清仓全部持仓：过 T+1 的按现价卖；当日买入的按下一交易日开盘价卖
     S.positions.slice().forEach(closePosForRepool);
     S.positions = [];
@@ -1944,7 +2232,7 @@
     var excl = cands.length >= 36 ? S.pool.map(function (p) { return p.code; }) : [];
     var pool = curSrc.kind === 'etf' ? sampleEtfPool(cands, excl) : samplePool(cands, excl);
     // 神圣池（C 模式自选 ≤pickCap 即用户勾选集）：换池也只从自选集里重抽，坏标的剔除不放行全市场随机替换
-    var sacred = (curSrc.kind === 'mine' && cands.length <= pickCap());
+    var sacred = (curSrc.kind === 'seed') || (curSrc.kind === 'mine' && cands.length <= pickCap());   // r30 种子池同理
     ensureData(pool, S.startIdx, !sacred, onProg, cands).then(function (r) {
       if (r.bad && r.bad.length) {
         if (sacred) {
@@ -2031,10 +2319,10 @@
   }
   function rankOf(sh) {
     if (!isFinite(sh)) return '--';
-    if (sh >= 5) return 'S';
-    if (sh >= 2.5) return 'A';
-    if (sh >= 1.8) return 'B';
-    if (sh >= 1.1) return 'C';
+    if (sh > 3) return 'S';     // r31：评级阈值收紧——S>3 / A>2 / B>1 / C>0（原 S≥5/A≥2.5/B≥1.8/C≥1.1）
+    if (sh > 2) return 'A';
+    if (sh > 1) return 'B';
+    if (sh > 0) return 'C';
     return 'D';
   }
 
@@ -2147,6 +2435,9 @@
       // 2) 全部算完才提交
       S.positions = [];
       S.over = true;
+      // r30：挑战局结算 → 先快照既有最佳（区分首次/刷新），再记录本机在这颗种子上的最好成绩
+      SEED_BEST_PREV = S.seed ? seedBestOf(S.seed) : null;
+      if (S.seed) saveSeedBest(S.seed, totalRet);
       saveProgress();   // 结算后也存盘（over 局下次打开可"继续"进结算报告）
       archiveGame();    // 本局战绩归档进本机历史（r18）
       renderSettle();
@@ -2187,7 +2478,7 @@
       '<div class="st-sub">总收益 <b class="' + cls(st.totalRet) + '">' + pct(st.totalRet) + '</b> · 年化 <b class="' +
       cls(st.annual) + '">' + pct(st.annual) + '</b></div></div></div>' +
       '<table class="st-table"><tbody>' +
-      row('夏普比率', st.sharpe != null && isFinite(st.sharpe) ? st.sharpe.toFixed(3) : '--', '评级阈值 S≥5 / A≥2.5 / B≥1.8 / C≥1.1') +
+      row('夏普比率', st.sharpe != null && isFinite(st.sharpe) ? st.sharpe.toFixed(3) : '--', '评级 S>3 / A>2 / B>1 / C>0') +
       row('择时能力', st.timing.toFixed(1) + '%', '大盘方向踩中 ' + st.timingHit.toFixed(0) + '%（80%命中=满分100%）', true) +
       row('选股能力', st.select.toFixed(1) + '%', '中位数命中 ' + st.hitA.toFixed(0) + '%(+50) · 日均 ' + pct(st.retB) + '(0.5%/日=+50)', true) +
       row('最大回撤', '-' + st.mdd.toFixed(2) + '%') +
@@ -2216,8 +2507,47 @@
     if (!S.revealed && el('btn-reveal')) {
       el('btn-reveal').onclick = function () { S.revealed = true; renderSettle(); };
     }
+    renderSettleSeed();                 // r30 结算屏：本局种子 + 成绩分享文案
     el('screen-game').style.display = 'none';
     el('screen-settle').style.display = 'block';
+  }
+
+  // r30 结算屏底部的「挑战种子分享区」：直接把可转发的分享内容写出来
+  function renderSettleSeed() {
+    var box = el('settle-seed');
+    if (!box) return;
+    var payload = currentSeed();
+    if (!payload || !S.stats) { box.style.display = 'none'; return; }
+    var st = S.stats;
+    var elig = !!(S.seed && payload === S.seed);   // r30：换过池 / 局内增删过自选 → 不再计入该种子最佳成绩
+    var prevBest = elig ? SEED_BEST_PREV : null;   // 结算瞬间快照（undefined/null = 首次挑战这颗种子）
+    var fresh = elig && !prevBest;
+    var beat = elig && !!prevBest && st.totalRet > prevBest.ret + 1e-9;
+    var retTxt = (typeof st.totalRet === 'number') ? pct(st.totalRet) : '—';
+    var benchTxt = (typeof st.benchRet === 'number' && isFinite(st.benchRet)) ? pct(st.benchRet) : '—';
+    var bestTxt = elig
+      ? (fresh ? '<b>首次挑战这颗种子</b>'
+        : (beat ? '<b>刷新了你的最好成绩</b>'
+          : (prevBest ? '你的最好成绩 <b class="' + cls(prevBest.ret) + '">' + pct(prevBest.ret) + '</b>' : '')))
+      : '<span class="seed-dim">（本局更换过股票池/自选，未计入该种子最佳成绩）</span>';
+    box.style.display = 'block';
+    box.innerHTML =
+      '<div class="ss-hd">🎯 本局种子 — 发给朋友，他们就能玩到一模一样的一局</div>' +
+      '<div class="ss-best">本局 <b class="' + cls(st.totalRet) + '">' + retTxt + '</b>' +
+        ' ｜ 同期沪深300 <b class="' + cls(st.benchRet) + '">' + benchTxt + '</b> ｜ ' + bestTxt +
+      '</div>' +
+      '<div class="ss-text" id="ss-text">' + escHtml(seedResultText()) + '</div>' +
+      '<div class="ss-btns">' +
+        '<button id="ss-copy-result" class="primary" title="复制种子加成绩，直接发群里">复制成绩文案</button>' +
+        '<button id="ss-copy-seed" title="只复制种子">复制种子</button>' +
+        '<button id="ss-view-seed" title="打开种子卡片">🎯 种子卡片</button>' +
+      '</div>';
+    var b1 = el('ss-copy-result'); if (b1) b1.onclick = function () { copyText(seedResultText(), '成绩文案已复制，去发给朋友吧'); };
+    var b2 = el('ss-copy-seed'); if (b2) b2.onclick = function () { copyText(seedShareText(payload), '种子已复制'); };
+    var b3 = el('ss-view-seed'); if (b3) b3.onclick = openSeedOutModal;
+  }
+  function escHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
   function row(k, v, note, hl) {
     return '<tr' + (hl ? ' class="hl"' : '') + '><td class="k">' + k + '</td><td class="v">' + v + '</td><td class="note">' + (note || '') + '</td></tr>';
@@ -2362,6 +2692,20 @@
     if (mh) {
       mh.addEventListener('click', function (e) {
         if (e.target === this) closeHistory();
+        var sbtn = (e.target.closest) ? e.target.closest('.hist-seed-btn') : null;
+        if (sbtn) {   // r31：点「🎯 种子」= 复制该局种子，不触发展开/收起
+          var nd = sbtn;
+          while (nd && nd !== mh && !(nd.getAttribute && nd.getAttribute('data-hi'))) nd = nd.parentNode;
+          if (nd && nd !== mh) {
+            var a2 = loadHist();
+            var hi2 = parseInt(nd.getAttribute('data-hi'), 10);
+            var rec2 = a2[a2.length - hi2];
+            var pl2 = rec2 ? histSeedPayload(rec2) : null;
+            if (pl2) copyText(seedShareText(pl2), '本局种子已复制，发给朋友挑战吧');
+            else toast('该局无法编码成种子');
+          }
+          return;
+        }
         var node = e.target;
         while (node && node !== mh && !(node.getAttribute && node.getAttribute('data-hi'))) node = node.parentNode;
         if (node && node !== mh && node.getAttribute('data-hi')) {
@@ -2445,6 +2789,24 @@
       layout();
       if (!multiOn) renderGame();
     };
+    // ---------- r30 挑战种子：入口按钮 + 两个弹窗绑定 ----------
+    var bss = el('btn-seed-start');
+    if (bss) bss.onclick = function () { closeModeModal(); openSeedInModal(); };
+    var tseed = el('tip-seed');
+    if (tseed) tseed.onclick = function () { closeTip(); openSeedOutModal(); };   // 💡 面板里「分享本局种子」
+    var sic = el('seed-in-cancel'); if (sic) sic.onclick = closeSeedInModal;
+    var sio = el('seed-in-ok'); if (sio) sio.onclick = applySeedInput;
+    var si = el('seed-input');
+    if (si) si.addEventListener('input', function () { renderSeedPreview(this.value); });
+    var msi = el('modal-seed-in');
+    if (msi) msi.addEventListener('click', function (e) { if (e.target === this) closeSeedInModal(); });
+    var soc = el('seed-out-close'); if (soc) soc.onclick = closeSeedOutModal;
+    var socs = el('seed-out-copy-seed');
+    if (socs) socs.onclick = function () { var p = currentSeed(); if (p) copyText(seedShareText(p), '种子已复制'); else toast('当前没有可分享的种子'); };
+    var scor = el('seed-out-copy-result');
+    if (scor) scor.onclick = function () { var t = seedResultText(); if (t) copyText(t, '成绩文案已复制'); else toast('当前没有可分享的种子'); };
+    var mso = el('modal-seed-out');
+    if (mso) mso.addEventListener('click', function (e) { if (e.target === this) closeSeedOutModal(); });
     document.addEventListener('keydown', function (e) {
       if (el('screen-game').style.display === 'none') return;
       if (el('modal-settle').style.display !== 'none') return;
@@ -2599,7 +2961,7 @@
     '新闻是短线最好的燃料：利好高开别追，利空低开别慌割。市场交易的是"预期差"。',
     '本游戏的新闻栏在右侧「信息」抽屉里，市场要闻 + 个股新闻都在那，操盘前先看一眼当日消息。',
     '胜率不重要，盈亏比才重要：赢的时候赚大钱、亏的时候亏小钱，长期必赢。公式 = 平均盈利/平均亏损。',
-    '夏普比率 = (收益 - 无风险利率) / 波动。它衡量"每冒一分风险换来多少收益"，评级 S≥5 / A≥2.5 / B≥1.8。',
+    '夏普比率 = (收益 - 无风险利率) / 波动。它衡量"每冒一分风险换来多少收益"，评级 S>3 / A>2 / B>1 / C>0。',
     '最大回撤决定你的心理承受力：先跌 50% 要涨 100% 才能回本。所以控回撤 = 控仓位。',
     '融资（本游戏总资产≥50万解锁）是双刃剑：涨一倍收益，跌一半也可能爆仓。维持担保比例低于110%会被强平。',
     '不要频繁交易：每次买卖都有手续费（最低5元）。来回倒腾，手续费会悄悄吃掉你的收益。',
@@ -2684,18 +3046,29 @@
     }
     el('modal-hist').style.display = 'flex';
   }
+  // r31：一条历史战绩对应的挑战种子载荷（优先用结算时快照 sd；旧档按标的池 + 起始日期回推编码）
+  function histSeedPayload(r) {
+    if (r && r.sd) return r.sd;
+    if (!r || !r.pool || !r.pool.length) return null;
+    var codes = r.pool.map(function (p) { return p.c; });
+    var sIdx = (typeof r.sIdx === 'number') ? r.sIdx : DAYS.indexOf(String(r.s0));
+    return encodeSeed(codes, sIdx >= 0 ? sIdx : 0) || null;
+  }
   function rankColor(rk) {
     return ({ S: '#8957e5', A: '#238636', B: '#1f6feb', C: '#9e6a03', D: '#da3633' })[rk] || '#555';
   }
   function histRowHtml(r, no) {
     var tag = (r.simple ? '简单8' : '复杂18');
+    var hasSeed = !!histSeedPayload(r);
     var head =
       '<div class="hist-head" data-hi="' + no + '">' +
       '<span class="hist-badge" style="background:' + rankColor(r.rank) + '">' + (r.rank || '-') + '</span>' +
       '<span class="hist-t"><b>#' + no + ' ' + r.mode + ' · ' + tag + '</b>' +
       '<span>' + fmtDate(r.s0) + ' → ' + fmtDate(r.s1) + ' · ' + r.days + ' 个交易日 · ' + r.nPool + ' 只标的</span></span>' +
       '<span class="hist-ret"><b class="' + cls(r.ret) + '">' + pct(r.ret) + '</b>' +
-      '<span>' + money(r.eq) + '</span></span></div>';
+      '<span>' + money(r.eq) + '</span></span>' +
+      (hasSeed ? '<button class="hist-seed-btn" data-hi="' + no + '" title="把这一局编成挑战种子，发给朋友即可玩到一模一样的一局">🎯 种子</button>' : '') +
+      '</div>';
     var body = '<div class="hist-body">';
     var st = r.sh, ab = r.alpha, bt = r.beta, be = r.bench;
     var num = function (x) { return x != null && isFinite(x); };   // 存档 JSON 会把 NaN 转成 null，需一并判空

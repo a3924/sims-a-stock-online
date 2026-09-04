@@ -360,7 +360,11 @@
       while (q.length) {
         var code = q.shift();
         try {
-          out[code] = await fetchKLine(code);
+          // r32：单只看门狗——个别标的外部数据源可能永久无响应（挂死），55s 兜底判失败，交由上层剔除/替换，绝不整局卡死
+          out[code] = await Promise.race([
+            fetchKLine(code),
+            delay(55000).then(function () { throw new Error('watchdog ' + code); })
+          ]);
           onOne && onOne(++done, total, code, null);
         } catch (e) {
           onOne && onOne(++done, total, code, e);
